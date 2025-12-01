@@ -1,0 +1,79 @@
+{
+  "name": "@vreme/temporal-mcp",
+  "version": "1.0.10",
+  "description": "Temporal intelligence MCP server. Works with Claude Desktop, Continue, Cline, and any MCP-compatible AI client. 200+ timezones, 9 cultural calendars (Hebrew, Islamic, Chinese, Hindu, Persian, Buddhist, Bahá'í, Ethiopian, Mayan), astronomical events, prayer times, fasting detection, and activity appropriateness. Natural language queries: 'What time is it in Tokyo?', 'Is it Ramadan?', 'When is Fajr prayer in Dubai?', 'Is it appropriate to call Jerusalem now?'",
+  "main": "build/index.js",
+  "type": "module",
+  "bin": {
+    "vreme-temporal-mcp": "build/index.js"
+  },
+  "files": [
+    "build/**/*",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc && npm run fix-shebang",
+    "fix-shebang": "node -e \"const fs=require('fs');const file='build/index.js';let content=fs.readFileSync(file,'utf8');if(!content.startsWith('#!')){content='#!/usr/bin/env node\\n'+content;fs.writeFileSync(file,content);fs.chmodSync(file,0o755);}\"",
+    "start": "node build/index.js",
+    "dev": "tsc && node build/index.js",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run build",
+    "debug:mcp": "tsx scripts/debug-client.ts"
+  },
+  "keywords": [
+    "mcp",
+    "mcp-server",
+    "model-context-protocol",
+    "temporal",
+    "temporal-intelligence",
+    "time",
+    "timezone",
+    "clock",
+    "calendar",
+    "hebrew-calendar",
+    "islamic-calendar",
+    "chinese-calendar",
+    "lunar-calendar",
+    "prayer-times",
+    "salah",
+    "namaz",
+    "qibla",
+    "islamic",
+    "cultural-awareness",
+    "cross-cultural",
+    "interfaith",
+    "religious",
+    "ramadan",
+    "shabbat",
+    "fasting",
+    "religious-observances",
+    "sunrise",
+    "sunset",
+    "astronomical",
+    "moon-phase",
+    "ai",
+    "assistant",
+    "chatbot",
+    "llm",
+    "natural-language",
+    "timezone-converter",
+    "claude",
+    "claude-desktop"
+  ],
+  "author": "Vreme",
+  "license": "MIT",
+  "homepage": "https://www.vreme.ai",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vreme-ai/temporal-mcp.git"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.23.0",
+    "zod": "^4.1.13"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.0"
+  }
+}
