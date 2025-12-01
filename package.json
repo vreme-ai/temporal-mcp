@@ -1,6 +1,6 @@
 {
   "name": "@vreme/temporal-mcp",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "Temporal intelligence MCP server. Works with Claude Desktop, Continue, Cline, and any MCP-compatible AI client. 200+ timezones, 9 cultural calendars (Hebrew, Islamic, Chinese, Hindu, Persian, Buddhist, Bahá'í, Ethiopian, Mayan), astronomical events, prayer times, fasting detection, and activity appropriateness. Natural language queries: 'What time is it in Tokyo?', 'Is it Ramadan?', 'When is Fajr prayer in Dubai?', 'Is it appropriate to call Jerusalem now?'",
   "main": "build/index.js",
   "type": "module",
