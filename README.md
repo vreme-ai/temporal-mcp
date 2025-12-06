@@ -6,32 +6,123 @@
 
 # Vreme Temporal MCP Server
 
-MCP server providing temporal intelligence - timezone conversions, cultural calendars, astronomical events, prayer times, and time-sensitive context.
+MCP server providing temporal intelligence - timezone conversions, 31 cultural calendars, astronomical events, prayer times, **250+ countries' holiday data**, business time calculations, and time-sensitive context.
+
+## ✨ What's New in v1.4.0
+
+🎉 **Global Holiday Database** - Comprehensive holiday data for **251 countries**!
+- National holidays, public holidays, bank holidays
+- Check if any date is a holiday in any country
+- Multi-country coordination for global teams
+- Business day intelligence (not holiday + not weekend)
+- Historical data (2020-2023) + Future planning (2024-2027)
 
 ## Features
 
-### Temporal Intelligence
+### 🌍 Global Holiday Intelligence (NEW in v1.4.0)
+- **251 countries** with comprehensive holiday data (US, CN, IN, GB, JP, DE, FR, BR, MX, RU, and 241 more!)
+- **National holidays** - Government-recognized public holidays
+- **Bank holidays** - Financial market closures
+- **Multi-country coordination** - Check holidays across multiple countries simultaneously
+- **Business day logic** - Not a holiday AND not a weekend
+- **Historical & future** - Any year from 2020 to 2027+
+- **Powered by python-holidays** - Battle-tested, community-maintained database
+
+### ⏰ Temporal Intelligence
 - **Natural language queries** - "What time is it in Tokyo?", "Is it Ramadan?", "Can I call Berlin now?"
 - **200+ timezones** - Complete pytz timezone database with DST handling
 - **Astronomical events** - Sunrise, sunset, moon phases, twilight times
 - **Activity appropriateness** - Smart recommendations for calls, meetings, work based on time and culture
+- **Temporal Context Engine** - Deep temporal analysis for any date across all 31 calendars
+- **Date Comparison** - Compare temporal significance of two dates
+- **Temporal Density Scoring** - Quantify how "significant" any date is culturally (0-100)
+- **Business Time Intelligence** - Calculate business days/hours accounting for country-specific weekends and holidays
+- **Historical Temporal Context** - Get comprehensive temporal snapshot for any historical date
 
-### Cultural Calendars (9 Systems)
-- **Hebrew** - Shabbat detection, holiday observances, work restrictions
-- **Islamic** - Ramadan fasting, prayer times, holiday detection
-- **Chinese** - Lunisolar calendar, zodiac animals, elements
-- **Hindu** - Festival dates and observances
-- **Persian** - Nowruz and Persian calendar
-- **Buddhist** - Vesak and Buddhist observances
-- **Bahá'í** - Bahá'í calendar system
-- **Ethiopian** - Ethiopian calendar
+### 📅 Cultural Calendars (31 Systems)
+
+**Major Religious & Cultural Calendars:**
+- **Hebrew** - Shabbat detection, holiday observances, work restrictions, Torah portions
+- **Islamic** - Ramadan fasting, prayer times, Eid celebrations, Islamic holidays
+- **Chinese** - Lunisolar calendar, zodiac animals, 5 elements, 24 solar terms
+- **Hindu** - Festival dates, Diwali, Holi, regional observances
+- **Persian** - Nowruz, Zoroastrian heritage
+- **Buddhist** - Vesak, meditation days, Buddhist observances
+- **Sikh** - Vaisakhi, Gurpurab, Sikh festivals
+- **Coptic** - Coptic Christmas, Egyptian Christian calendar
+- **Orthodox Christian** - Eastern Orthodox holidays, saints' days (including Bulgarian)
+- **Ethiopian** - Ethiopian calendar and observances
+- **Bahá'í** - Bahá'í calendar system and holy days
+- **Thai Buddhist** - Thai Buddhist calendar
+- **Tibetan** - Tibetan calendar and festivals
+- **Zoroastrian** - Ancient Persian calendar
+- **Armenian** - Armenian Apostolic calendar
+- **Javanese** - Traditional Javanese calendar
+- **Mongolian** - Mongolian calendar system
+- **Burmese** - Burmese calendar
+
+**East Asian Calendars:**
+- **Japanese** - Imperial eras, national holidays
+- **Bengali** - Bengali calendar
+- **Tamil** - Tamil calendar
+- **Nepali** - Nepali calendar
+
+**Western & Technical Calendars:**
 - **Mayan** - Long count calendar
+- **French Revolutionary** - French Republican calendar
+- **Revised Julian** - Modified Julian calendar
+- **Discordian** - Discordian calendar
+- **Holocene** - Human Era calendar
+- **Unix Epoch** - Unix timestamp
+- **ISO Week Date** - ISO 8601 week calendar
+- **Western Zodiac** - Astrological calendar
+- **Star Trek Stardate** - TNG-era Stardate system
+
+**Coverage:** 5+ billion people, 10+ religions, 300+ total observances
 
 ### Islamic Prayer Times
 - **All 5 daily prayers** - Fajr, Dhuhr, Asr, Maghrib, Isha
 - **7 calculation methods** - MWL, ISNA, Egypt, Makkah, Karachi, Tehran, Jafari
 - **Qibla direction** - Direction to Mecca from any location
 - **Next prayer countdown** - Time until next prayer
+
+## Design Philosophy
+
+Vreme is built on core principles that make it uniquely powerful:
+
+### ⚡ Ultra-Fast & Lightweight
+- **Stateless architecture** - No database queries, pure computation
+- **Sub-100ms responses** - Optimized for speed
+- **Infinitely scalable** - No user data = no bottlenecks
+- **Zero overhead** - No accounts, no storage, no sessions
+
+### 🎯 Laser-Focused Scope
+Vreme does ONE thing perfectly: **Temporal Intelligence**
+
+**What we ARE:**
+- Temporal data provider (calendars, holidays, business days)
+- Astronomical calculator (moon phases, sunrise/sunset)
+- Cultural calendar expert (30+ systems, 195 countries)
+- Time computation engine (conversions, comparisons, analysis)
+
+**What we are NOT:**
+- ❌ Meeting scheduler (use Calendly, Cal.com)
+- ❌ Text generator (that's the LLM's job)
+- ❌ Calendar app (no event storage)
+- ❌ Notification service (no webhooks)
+
+### 📊 Pure Structured Data
+- **JSON responses only** - No HTML, no formatting
+- **Maximum composability** - LLMs decide how to present it
+- **Zero opinions** - We provide facts, AI provides context
+
+### ✅ Factual & Authoritative
+- Verified holiday data for 251 countries (powered by python-holidays)
+- 31 calendar systems with cultural accuracy
+- Astronomical calculations from trusted libraries
+- **No predictions** - only computable facts
+
+This focus makes Vreme fast, reliable, and perfect for AI integration.
 
 ## Installation
 
@@ -136,10 +227,11 @@ Add to your Cline configuration following their MCP setup guide.
 ### query_time
 Query temporal information using natural language. Returns comprehensive temporal context including:
 - Current time and timezone
-- 9 cultural calendars (Hebrew, Islamic, Chinese, Hindu, Persian, Buddhist, Bahá'í, Ethiopian, Mayan)
+- 30 cultural calendars covering 5+ billion people worldwide
 - Astronomical events (sunrise, sunset, moon phases)
 - Religious fasting status and work restrictions
 - Activity appropriateness for calls, meetings, work
+- 300+ religious and cultural observances
 
 **Inputs:**
 - `query` (string, required): Natural language temporal query
@@ -151,6 +243,10 @@ Query temporal information using natural language. Returns comprehensive tempora
 - "Is it Ramadan?"
 - "When is sunrise in Paris?"
 - "What's the Chinese New Year date?"
+- "When is Stefanovden?" (Bulgarian Orthodox saint's day)
+- "When is Vaisakhi 2025?" (Sikh New Year)
+- "What is the Coptic date today?"
+- "When is Songkran?" (Thai New Year)
 
 ### query_prayer_times
 Get Islamic prayer times (Salah/Namaz) for any location. Returns all 5 daily prayers, next prayer time, and Qibla direction to Mecca.
@@ -167,9 +263,10 @@ Get Islamic prayer times (Salah/Namaz) for any location. Returns all 5 daily pra
 ### check_activity_appropriateness
 Check if the current time is appropriate for specific activities (calls, work, meetings) in a given location. Takes into account:
 - Time of day (business hours, sleeping hours)
-- Cultural/religious observances across 9 calendar systems
-- Shabbat, Ramadan fasting, religious holidays
+- Cultural/religious observances across 30 calendar systems
+- Shabbat, Ramadan fasting, religious holidays from 10+ religions
 - Work restrictions and local customs
+- 300+ total observances worldwide
 
 **Inputs:**
 - `location` (string, required): Location name
@@ -180,6 +277,114 @@ Check if the current time is appropriate for specific activities (calls, work, m
 - "Can I call someone in Tokyo right now?"
 - "Is it appropriate for work in Jerusalem?"
 - "Is it a good time for a meeting in Berlin?"
+
+### analyze_temporal_context
+Perform deep temporal analysis on any date. Returns comprehensive context including all 30 calendar representations, cultural observances, astronomical data, business context, seasonal information, and temporal density score (0-100).
+
+**Inputs:**
+- `date` (string, required): ISO 8601 date string (e.g., '2024-12-25T00:00:00')
+- `location` (string, optional): Location for astronomical/timezone context
+- `include_fields` (array, optional): Fields to include (calendars, observances, astronomical, business, seasonal, density)
+
+**Use cases:**
+- Analyze cultural significance of any date
+- Plan global events accounting for all calendars
+- Understand temporal context for historical dates
+- Research religious and cultural observances
+
+### compare_dates
+Compare two dates and analyze their temporal significance. Returns time difference, observances on each date, shared observances, temporal density scores, and which date is more culturally significant.
+
+**Inputs:**
+- `date1` (string, required): First ISO 8601 date string
+- `date2` (string, required): Second ISO 8601 date string
+- `location` (string, optional): Optional location context
+
+**Use cases:**
+- Compare significance of different dates
+- Understand cultural context differences
+- Plan events by choosing more/less significant dates
+
+### calculate_business_time
+Calculate business time accounting for country-specific weekends and holidays. Supports adding business days, counting business days/hours between dates, and checking working days.
+
+**Inputs:**
+- `operation` (enum, required): 'add_days', 'days_between', 'hours_between', 'is_working_day'
+- `start_date` (string, required): Start date (ISO 8601)
+- `end_date` (string, optional): End date (required for days_between, hours_between)
+- `business_days` (number, optional): Number of days to add (required for add_days)
+- `country_code` (string, optional): ISO 3166-1 alpha-2 country code (default: 'US')
+- `work_hours` (array, optional): Work hours [start, end] for hours_between (default: [9, 17])
+
+**Use cases:**
+- Calculate project deadlines in business days
+- Find common business days across countries for international meetings
+- Account for different weekend patterns (Fri-Sat in Middle East, etc.)
+- Plan deliveries accounting for holidays
+
+### list_holiday_countries
+**🌍 NEW in v1.4.0:** Discover which countries have holiday data. Returns all 251 supported countries with their codes and names.
+
+**Inputs:**
+- None required
+
+**Use cases:**
+- Discover which countries are supported
+- Get country codes for other holiday tools
+- Explore global coverage
+
+### get_country_holidays
+**📅 NEW in v1.4.0:** Get ALL holidays for a country in a specific year. Returns complete list of national holidays, public holidays, and bank holidays.
+
+**Inputs:**
+- `country_code` (string, required): ISO 3166-1 alpha-2 country code (US, GB, JP, CN, IN, DE, FR, etc.)
+- `year` (number, optional): Year (defaults to current year)
+- `include_observed` (boolean, optional): Include observed dates when holidays fall on weekends (default: true)
+
+**Use cases:**
+- See all holidays for a country at once
+- Plan annual schedules
+- Understand local holiday patterns
+- Generate calendar applications
+
+### check_holiday
+**✅ NEW in v1.4.0:** Check if a SPECIFIC date is a holiday in ONE country. Ultra-fast (<10ms) Yes/No answer with holiday name.
+
+**Inputs:**
+- `country_code` (string, required): ISO 3166-1 alpha-2 country code (US, GB, JP, etc.)
+- `date` (string, required): Date in YYYY-MM-DD format (e.g., '2024-12-25')
+
+**Use cases:**
+- Quick holiday lookup for scheduling
+- "Is tomorrow a holiday in Germany?"
+- Event planning
+- Appointment booking systems
+
+### check_multi_country_holiday
+**🌐 NEW in v1.4.0:** Check if a date is a holiday across MULTIPLE countries simultaneously. Perfect for global team coordination.
+
+**Inputs:**
+- `date` (string, required): Date in YYYY-MM-DD format
+- `countries` (array, required): Array of 2-20 country codes (e.g., ['US', 'GB', 'JP', 'IN', 'CN'])
+
+**Use cases:**
+- Schedule international meetings
+- Find dates that work for global teams
+- Coordinate across time zones and holidays
+- "Can we meet on Dec 25 across US, UK, and Japan?"
+
+### check_business_day
+**💼 NEW in v1.4.0:** Check if a date is a BUSINESS day (not holiday AND not weekend). Focus on work/no-work status.
+
+**Inputs:**
+- `country_code` (string, required): ISO 3166-1 alpha-2 country code
+- `date` (string, required): Date in YYYY-MM-DD format
+
+**Use cases:**
+- "Is tomorrow a working day?"
+- "Are offices open on this date?"
+- Business logic for scheduling
+- Delivery date calculations
 
 ## Example Usage
 
