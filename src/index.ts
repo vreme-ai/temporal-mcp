@@ -745,17 +745,158 @@ server.registerTool("check_business_day", {
   }
 });
 
+// ============================================================
+// DATE VALIDATION TOOLS (v1.5.1)
+// ============================================================
+
+server.registerTool("validate_date", {
+  description: "🔍 DATE VALIDATOR: Validate if a date is valid (e.g., catch Feb 30, Month 13). Returns detailed errors and smart suggestions for fixes. Use this when you're about to generate a date and want to verify it's valid, or when user provides a potentially invalid date. Checks leap years, month boundaries, etc. Fast: <5ms.",
+  inputSchema: {
+    year: z.number().describe("Year (e.g., 2024)"),
+    month: z.number().describe("Month (1-12)"),
+    day: z.number().describe("Day (1-31)"),
+  },
+}, async ({ year, month, day }) => {
+  try {
+    if (!year || !month || !day) {
+      throw new Error("year, month, and day are required");
+    }
+    
+    const response = await fetch(`${VREME_API_URL}/validate/date/${year}/${month}/${day}`);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`API request failed: ${response.status} ${errorText}`);
+    }
+    
+    const data = await response.json() as any;
+    
+    let output = `## Date Validation: ${year}-${month}-${day}\n\n`;
+    
+    if (data.valid) {
+      output += `✅ **Valid date!**\n\n`;
+      output += `**ISO Date:** ${data.iso_date}\n`;
+      output += `**Day of week:** ${data.metadata.day_of_week}\n`;
+      output += `**Day of year:** ${data.metadata.day_of_year}\n`;
+      output += `**Week number:** ${data.metadata.week_number}\n`;
+      output += `**Month:** ${data.metadata.month_name} (${data.metadata.max_day_in_month} days)\n`;
+      output += `**Leap year:** ${data.metadata.is_leap_year ? 'Yes' : 'No'}\n`;
+    } else {
+      output += `❌ **Invalid date!**\n\n`;
+      output += `### Errors\n\n`;
+      for (const error of data.errors) {
+        output += `- ${error}\n`;
+      }
+      
+      if (data.suggestions && data.suggestions.length > 0) {
+        output += `\n### Suggestions\n\n`;
+        for (const suggestion of data.suggestions) {
+          if (suggestion.date) {
+            output += `- **${suggestion.date}** - ${suggestion.reason}\n`;
+          } else {
+            output += `- ${JSON.stringify(suggestion)}\n`;
+          }
+        }
+      }
+      
+      if (data.metadata) {
+        output += `\n### Context\n\n`;
+        if (data.metadata.month_name) {
+          output += `- ${data.metadata.month_name} has ${data.metadata.max_day_in_month} days\n`;
+        }
+        if (data.metadata.is_leap_year !== undefined) {
+          output += `- ${year} is ${data.metadata.is_leap_year ? 'a' : 'not a'} leap year\n`;
+        }
+      }
+    }
+    
+    return { content: [{ type: "text", text: output }] };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return { content: [{ type: "text", text: `Error: ${msg}` }], isError: true };
+  }
+});
+
+server.registerTool("add_business_days_detailed", {
+  description: "📊 BUSINESS DAY CALCULATOR WITH DETAILS: Add/subtract business days and get detailed metadata about what was excluded. Shows weekends skipped, holidays skipped, calendar span. Use this when you need to EXPLAIN to the user WHY the result is X days away. For simple calculation without explanation, use the regular calculate_business_time tool. Fast: <20ms.",
+  inputSchema: {
+    start_date: z.string().describe("Starting date in YYYY-MM-DD format"),
+    business_days: z.number().describe("Number of business days to add (positive) or subtract (negative)"),
+    country_code: z.string().describe("ISO 3166-1 alpha-2 country code (US, GB, JP, etc.)"),
+  },
+}, async ({ start_date, business_days, country_code }) => {
+  try {
+    if (!start_date || business_days === undefined || !country_code) {
+      throw new Error("start_date, business_days, and country_code are required");
+    }
+    
+    const response = await fetch(`${VREME_API_URL}/business-days/add-with-metadata`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ start_date, business_days, country_code }),
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`API request failed: ${response.status} ${errorText}`);
+    }
+    
+    const data = await response.json() as any;
+    
+    let output = `## Business Day Calculation\n\n`;
+    output += `**Start date:** ${data.start_date}\n`;
+    output += `**Business days ${business_days >= 0 ? 'added' : 'subtracted'}:** ${Math.abs(business_days)}\n`;
+    output += `**Result date:** ${data.result_date}\n`;
+    output += `**Country:** ${data.country_code}\n\n`;
+    
+    output += `### Calculation Details\n\n`;
+    output += `**Calendar days span:** ${data.calendar_days_span} days\n`;
+    output += `**Excluded weekends:** ${data.excluded_weekends.length} days\n`;
+    output += `**Excluded holidays:** ${data.excluded_holidays.length} days\n\n`;
+    
+    if (data.excluded_weekends.length > 0) {
+      output += `### Weekend Days Skipped\n\n`;
+      for (const weekend of data.excluded_weekends) {
+        output += `- ${weekend}\n`;
+      }
+      output += `\n`;
+    }
+    
+    if (data.excluded_holidays.length > 0) {
+      output += `### Holidays Skipped\n\n`;
+      for (const holiday of data.excluded_holidays) {
+        output += `- **${holiday.date}**: ${holiday.name}\n`;
+      }
+      output += `\n`;
+    }
+    
+    output += `**Summary:** Adding ${Math.abs(business_days)} business days to ${data.start_date} took ${data.calendar_days_span} calendar days`;
+    if (data.excluded_holidays.length > 0) {
+      output += ` (skipped ${data.excluded_weekends.length} weekend days and ${data.excluded_holidays.length} holidays)`;
+    } else {
+      output += ` (skipped ${data.excluded_weekends.length} weekend days)`;
+    }
+    output += `.`;
+    
+    return { content: [{ type: "text", text: output }] };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return { content: [{ type: "text", text: `Error: ${msg}` }], isError: true };
+  }
+});
+
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("=== VREME MCP Server v1.5.0 ===");
-  console.error("Vreme Time Service MCP Server v1.4.0 running");
+  console.error("=== VREME MCP Server v1.5.1 ===");
+  console.error("Vreme Time Service MCP Server running");
   console.error(`API URL: ${VREME_API_URL}`);
   console.error("Available tools:");
   console.error("  - query_time, query_prayer_times, check_activity_appropriateness");
   console.error("  - analyze_temporal_context, compare_dates, calculate_business_time");
   console.error("  - list_holiday_countries, get_country_holidays, check_holiday, check_business_day");
   console.error("  - list_financial_markets_holidays, get_market_holidays");
+  console.error("  - validate_date, add_business_days_detailed (NEW in v1.5.1)");
 }
 
 main().catch((error) => {
