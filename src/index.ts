@@ -491,7 +491,7 @@ server.registerTool("calculate_business_time", {
 // ============================================================
 
 server.registerTool("list_holiday_countries", {
-  description: "🌍 DISCOVERY TOOL: List all 251 countries with holiday data support. Use this when user asks 'which countries do you support?' or 'do you have data for Brazil?'. Returns country codes and names. For actual holiday data, use get_country_holidays. NOT for checking if a date is a holiday (use check_holiday).",
+  description: "🌍 DISCOVERY TOOL: List all 247+ countries with holiday data support. Use this when user asks 'which countries do you support?' or 'do you have data for Brazil?'. Returns country codes and names. For actual holiday data, use get_country_holidays. NOT for checking if a date is a holiday (use check_holiday).",
   inputSchema: {},
 }, async () => {
   try {
@@ -534,21 +534,21 @@ server.registerTool("list_holiday_countries", {
 });
 
 server.registerTool("get_country_holidays", {
-  description: "📅 FULL HOLIDAY LIST: Get ALL holidays for a country in a specific year. Use this when user wants a complete list like 'What are all holidays in France 2024?' or 'List German holidays'. Returns every holiday with dates and names. NOT for checking a single date (use check_holiday) or multi-country (use check_multi_country_holiday). Fast: <30ms.",
+  description: "📅 FULL HOLIDAY LIST: Get ALL holidays for a country in a specific year. Use this when user wants a complete list like 'What are all holidays in France 2024?' or 'List German holidays'. Returns every holiday with dates, names, and categories (PUBLIC=govt closures, BANK, SCHOOL, OPTIONAL). Can filter by categories using ?categories=public for govt closures only. NOT for checking a single date (use check_holiday) or multi-country (use check_multi_country_holiday). Fast: <30ms.",
   inputSchema: {
     country_code: z.string().describe("ISO 3166-1 alpha-2 country code (US, GB, JP, CN, IN, DE, FR, etc.)"),
-    year: z.number().optional().describe("Year (defaults to current year if omitted)"),
-    include_observed: z.boolean().optional().describe("Include observed dates when holidays fall on weekends (default: true)"),
+    year: z.number().describe("Year to get holidays for (e.g., 2024, 2025)"),
+    categories: z.string().optional().describe("Optional: comma-separated categories to filter (e.g., 'public' for govt closures only, 'public,bank' for govt+bank holidays). If omitted, returns ALL categories."),
   },
-}, async ({ country_code, year, include_observed }) => {
+}, async ({ country_code, year, categories }) => {
   try {
     if (!country_code) throw new Error("country_code parameter is required");
+    if (!year) throw new Error("year parameter is required");
     
     const params = new URLSearchParams();
-    if (year) params.append('year', year.toString());
-    if (include_observed !== undefined) params.append('include_observed', include_observed.toString());
+    if (categories) params.append('categories', categories);
     
-    const url = `${VREME_API_URL}/holidays/${country_code}${params.toString() ? '?' + params.toString() : ''}`;
+    const url = `${VREME_API_URL}/holidays/${country_code}/${year}${params.toString() ? '?' + params.toString() : ''}`;
     const response = await fetch(url);
     
     if (!response.ok) {
@@ -560,14 +560,21 @@ server.registerTool("get_country_holidays", {
     
     let output = `## ${data.country_code} Holidays - ${data.year}\n\n`;
     output += `**Total holidays:** ${data.count}\n`;
-    output += `**Include observed:** ${data.include_observed ? 'Yes' : 'No'}\n\n`;
+    output += `**Categories:** ${data.categories_requested === 'all' ? 'All categories (PUBLIC, BANK, SCHOOL, OPTIONAL, etc.)' : data.categories_requested}\n\n`;
     
     output += `### Holiday List\n\n`;
-    const holidays = data.holidays as Array<{date: string, name: string, day_of_week: string, is_observed: boolean}>;
+    const holidays = data.holidays as Array<{
+      date: string, 
+      name: string, 
+      day_of_week: string, 
+      is_government_closure: boolean,
+      categories: string[]
+    }>;
     
     for (const h of holidays) {
-      const observed = h.is_observed ? ' (Observed)' : '';
-      output += `- **${h.date}** (${h.day_of_week}): ${h.name}${observed}\n`;
+      const govtClosure = h.is_government_closure ? '🏛️ Govt Closure' : '';
+      const cats = h.categories ? ` [${h.categories.join(', ')}]` : '';
+      output += `- **${h.date}** (${h.day_of_week}): ${h.name} ${govtClosure}${cats}\n`;
     }
     
     return { content: [{ type: "text", text: output }] };
@@ -578,7 +585,7 @@ server.registerTool("get_country_holidays", {
 });
 
 server.registerTool("check_holiday", {
-  description: "✅ SINGLE HOLIDAY CHECKER: Is this date a holiday in this country? Use this for simple Yes/No holiday checks like 'Is Dec 25 a holiday in Japan?' or 'Is tomorrow a holiday in Germany?'. Returns holiday name if yes, or business day status if no. FASTEST holiday tool (<10ms). For multiple countries, use check_multi_country_holiday. For full year list, use get_country_holidays. For work/non-work focus, use check_business_day.",
+  description: "✅ SINGLE HOLIDAY CHECKER: Is this date a PUBLIC holiday (govt closure) in this country? Use this for simple Yes/No holiday checks like 'Is Dec 25 a holiday in Japan?' or 'Is tomorrow a holiday in Germany?'. Returns holiday name if yes, or null if no. FASTEST holiday tool (<10ms). Checks PUBLIC category only (government office closures). For work/non-work focus, use check_business_day.",
   inputSchema: {
     country_code: z.string().describe("ISO 3166-1 alpha-2 country code (US, GB, JP, CN, IN, DE, FR, etc.)"),
     date: z.string().describe("Date to check in YYYY-MM-DD format (e.g., '2024-12-25')"),
@@ -588,7 +595,7 @@ server.registerTool("check_holiday", {
     if (!country_code) throw new Error("country_code parameter is required");
     if (!date) throw new Error("date parameter is required");
     
-    const response = await fetch(`${VREME_API_URL}/holidays/${country_code}/${date}`);
+    const response = await fetch(`${VREME_API_URL}/holidays/${country_code}/${date}/check`);
     
     if (!response.ok) {
       const errorText = await response.text();
@@ -600,16 +607,15 @@ server.registerTool("check_holiday", {
     let output = `## Holiday Check: ${country_code} on ${date}\n\n`;
     output += `**Date:** ${date}\n`;
     output += `**Day of week:** ${data.day_of_week}\n`;
-    output += `**Is holiday:** ${data.is_holiday ? 'Yes ✓' : 'No ✗'}\n`;
-    output += `**Is business day:** ${data.is_business_day ? 'Yes ✓' : 'No ✗'}\n\n`;
+    output += `**Is PUBLIC holiday:** ${data.is_holiday ? 'Yes ✓' : 'No ✗'}\n\n`;
     
     if (data.is_holiday) {
       output += `### Holiday Information\n\n`;
-      output += `**Name:** ${data.name}\n`;
+      output += `**Name:** ${data.holiday_name}\n`;
       output += `**Country:** ${data.country_code}\n\n`;
-      output += `${date} is **${data.name}** in ${data.country_code}. This is a holiday, so it's not a regular business day.\n`;
+      output += `${date} is **${data.holiday_name}** in ${data.country_code}. This is a PUBLIC holiday (government offices closed).\n`;
     } else {
-      output += `${date} is ${data.reason === 'weekend' ? 'a **weekend**' : 'a **regular business day**'} in ${data.country_code}.\n`;
+      output += `${date} is NOT a PUBLIC holiday in ${data.country_code}.\n`;
     }
     
     return { content: [{ type: "text", text: output }] };
@@ -619,22 +625,16 @@ server.registerTool("check_holiday", {
   }
 });
 
-server.registerTool("check_multi_country_holiday", {
-  description: "🌐 MULTI-COUNTRY HOLIDAY CHECKER: Is this date a holiday in MULTIPLE countries? Use this for global coordination: 'Which countries have Dec 25 off?', 'Is this date good for international meeting?', 'Can US, UK, Japan, China, and India all meet on this date?'. Returns per-country breakdown + summary (holiday in X countries, working in Y countries) + scheduling recommendation. DON'T use for single country (use check_holiday - faster). Fast: <50ms for 10 countries.",
-  inputSchema: {
-    date: z.string().describe("Date to check in YYYY-MM-DD format (e.g., '2024-12-25')"),
-    countries: z.array(z.string()).describe("Array of 2-20 country codes (e.g., ['US', 'GB', 'JP', 'IN', 'CN', 'DE', 'FR'])"),
-  },
-}, async ({ date, countries }) => {
+// ============================================================
+// FINANCIAL MARKETS TOOLS
+// ============================================================
+
+server.registerTool("list_financial_markets_holidays", {
+  description: "🏦 FINANCIAL MARKETS DISCOVERY: List all 5 supported financial markets with trading holiday calendars. Use this when user asks about stock markets, exchanges, or trading holidays. Returns: XNYS (NYSE), XNSE (NSE India), BVMF (Brazil), XECB (ECB TARGET2), IFEU (ICE Futures Europe). For actual trading holidays, use get_market_holidays.",
+  inputSchema: {},
+}, async () => {
   try {
-    if (!date) throw new Error("date parameter is required");
-    if (!countries || countries.length === 0) throw new Error("countries array is required");
-    
-    const response = await fetch(`${VREME_API_URL}/holidays/multi-country-check`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ date, countries }),
-    });
+    const response = await fetch(`${VREME_API_URL}/holidays/markets`);
     
     if (!response.ok) {
       const errorText = await response.text();
@@ -643,38 +643,56 @@ server.registerTool("check_multi_country_holiday", {
     
     const data = await response.json() as any;
     
-    let output = `## Multi-Country Holiday Check\n\n`;
-    output += `**Date:** ${data.date}\n`;
-    output += `**Day of week:** ${data.day_of_week}\n`;
-    output += `**Countries checked:** ${data.countries_checked}\n\n`;
+    let output = `## Financial Markets with Trading Holiday Data\n\n`;
+    output += `**Total markets:** ${data.count}\n`;
+    output += `**Source:** ${data.source}\n\n`;
     
-    output += `### Summary\n\n`;
-    output += `**Holiday in:** ${data.summary.holiday_in.length > 0 ? data.summary.holiday_in.join(', ') : 'None'} (${data.summary.holiday_count})\n`;
-    output += `**Working in:** ${data.summary.working_in.length > 0 ? data.summary.working_in.join(', ') : 'None'} (${data.summary.working_count})\n`;
-    if (data.summary.errors.length > 0) {
-      output += `**Errors:** ${data.summary.errors.join(', ')}\n`;
-    }
-    output += `\n`;
-    
-    output += `### Per-Country Details\n\n`;
-    for (const [code, info] of Object.entries(data.results as Record<string, any>)) {
-      if (info.error) {
-        output += `- **${code}**: ⚠️  ${info.error}\n`;
-      } else if (info.is_holiday) {
-        output += `- **${code}** (${info.country_name}): ✓ Holiday - ${info.holiday.name}\n`;
-      } else {
-        output += `- **${code}** (${info.country_name}): ✗ Working day\n`;
-      }
+    output += `### Supported Markets\n\n`;
+    for (const market of data.markets) {
+      output += `- **${market.market_code}**: ${market.market_name}\n`;
     }
     
-    output += `\n**Recommendation:** `;
-    if (data.summary.holiday_count === 0) {
-      output += `This date is a working day in all checked countries. Good for scheduling!`;
-    } else if (data.summary.holiday_count === data.countries_checked) {
-      output += `This date is a holiday in ALL checked countries. Not suitable for business meetings.`;
-    } else {
-      output += `This date is mixed - holiday in ${data.summary.holiday_count} countries, working in ${data.summary.working_count}. Consider the countries working on this day: ${data.summary.working_in.join(', ')}.`;
+    output += `\n*Use get_market_holidays tool to retrieve specific trading holiday data.*\n`;
+    
+    return { content: [{ type: "text", text: output }] };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return { content: [{ type: "text", text: `Error: ${msg}` }], isError: true };
+  }
+});
+
+server.registerTool("get_market_holidays", {
+  description: "📈 TRADING HOLIDAYS: Get all trading holidays when a financial market is CLOSED. Use this for: 'When is NYSE closed in 2024?', 'What are NSE India trading holidays?', 'Is the market open on this date?'. Returns dates when market is closed (exchanges don't trade). Markets: XNYS (NYSE), XNSE (NSE India), BVMF (Brazil), XECB (ECB), IFEU (ICE Futures). Fast: <20ms.",
+  inputSchema: {
+    market_code: z.string().describe("Market code: XNYS (NYSE), XNSE (NSE India), BVMF (Brazil), XECB (ECB TARGET2), IFEU (ICE Futures Europe)"),
+    year: z.number().describe("Year to get trading holidays for (e.g., 2024, 2025)"),
+  },
+}, async ({ market_code, year }) => {
+  try {
+    if (!market_code) throw new Error("market_code parameter is required");
+    if (!year) throw new Error("year parameter is required");
+    
+    const response = await fetch(`${VREME_API_URL}/holidays/markets/${market_code}/${year}`);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`API request failed: ${response.status} ${errorText}`);
     }
+    
+    const data = await response.json() as any;
+    
+    let output = `## ${data.market_code} Trading Holidays - ${data.year}\n\n`;
+    output += `**Total trading holidays:** ${data.count}\n`;
+    output += `**Source:** ${data.source}\n\n`;
+    
+    output += `### Days Market is CLOSED\n\n`;
+    const holidays = data.trading_holidays as Array<{date: string, name: string, day_of_week: string}>;
+    
+    for (const h of holidays) {
+      output += `- **${h.date}** (${h.day_of_week}): ${h.name}\n`;
+    }
+    
+    output += `\n*On these dates, the market does not trade. All other business days are trading days.*\n`;
     
     return { content: [{ type: "text", text: output }] };
   } catch (error) {
@@ -730,14 +748,14 @@ server.registerTool("check_business_day", {
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("=== VREME MCP Server v1.4.0 ===");
+  console.error("=== VREME MCP Server v1.5.0 ===");
   console.error("Vreme Time Service MCP Server v1.4.0 running");
   console.error(`API URL: ${VREME_API_URL}`);
   console.error("Available tools:");
   console.error("  - query_time, query_prayer_times, check_activity_appropriateness");
   console.error("  - analyze_temporal_context, compare_dates, calculate_business_time");
-  console.error("  - list_holiday_countries, get_country_holidays, check_holiday");
-  console.error("  - check_multi_country_holiday, check_business_day");
+  console.error("  - list_holiday_countries, get_country_holidays, check_holiday, check_business_day");
+  console.error("  - list_financial_markets_holidays, get_market_holidays");
 }
 
 main().catch((error) => {

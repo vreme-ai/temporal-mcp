@@ -6,27 +6,29 @@
 
 # Vreme Temporal MCP Server
 
-MCP server providing temporal intelligence - timezone conversions, 31 cultural calendars, astronomical events, prayer times, **250+ countries' holiday data**, business time calculations, and time-sensitive context.
+MCP server providing temporal intelligence - timezone conversions, 31 cultural calendars, astronomical events, prayer times, **247+ countries' holiday data**, **5 financial markets**, business time calculations, and time-sensitive context.
 
-## ✨ What's New in v1.4.0
+## ✨ What's New in v1.5.0
 
-🎉 **Global Holiday Database** - Comprehensive holiday data for **251 countries**!
-- National holidays, public holidays, bank holidays
-- Check if any date is a holiday in any country
-- Multi-country coordination for global teams
-- Business day intelligence (not holiday + not weekend)
-- Historical data (2020-2023) + Future planning (2024-2027)
+🎉 **Simplified Holiday Service** - Massive upgrade with category filtering!
+- **247+ countries** with comprehensive holiday data (US, CN, IN, GB, JP, DE, FR, BR, MX, RU, and 237+ more!)
+- **Category filtering** - PUBLIC (govt closures), BANK, SCHOOL, OPTIONAL, GOVERNMENT
+- **5 financial markets** - NYSE, NSE India, Brazil B3, ECB, ICE Futures Europe
+- **Trading holiday calendars** - Know when markets are closed
+- **Business day intelligence** - Smart checks for PUBLIC holidays + weekends
+- **Powered by python-holidays v0.86+** - Battle-tested, community-maintained database
 
 ## Features
 
-### 🌍 Global Holiday Intelligence (NEW in v1.4.0)
-- **251 countries** with comprehensive holiday data (US, CN, IN, GB, JP, DE, FR, BR, MX, RU, and 241 more!)
+### 🌍 Global Holiday Intelligence (NEW in v1.5.0)
+- **247+ countries** with comprehensive holiday data
+- **Category support** - Filter by PUBLIC (govt closures), BANK, SCHOOL, OPTIONAL
 - **National holidays** - Government-recognized public holidays
 - **Bank holidays** - Financial market closures
-- **Multi-country coordination** - Check holidays across multiple countries simultaneously
-- **Business day logic** - Not a holiday AND not a weekend
-- **Historical & future** - Any year from 2020 to 2027+
-- **Powered by python-holidays** - Battle-tested, community-maintained database
+- **Business day logic** - Not a PUBLIC holiday AND not a weekend
+- **5 financial markets** - NYSE, NSE India, Brazil B3, ECB TARGET2, ICE Futures Europe
+- **Trading holidays** - Know when stock exchanges are closed
+- **Powered by python-holidays v0.86+** - Community-maintained, accurate data
 
 ### ⏰ Temporal Intelligence
 - **Natural language queries** - "What time is it in Tokyo?", "Is it Ramadan?", "Can I call Berlin now?"
@@ -117,7 +119,7 @@ Vreme does ONE thing perfectly: **Temporal Intelligence**
 - **Zero opinions** - We provide facts, AI provides context
 
 ### ✅ Factual & Authoritative
-- Verified holiday data for 251 countries (powered by python-holidays)
+- Verified holiday data for 247+ countries (powered by python-holidays v0.86+)
 - 31 calendar systems with cultural accuracy
 - Astronomical calculations from trusted libraries
 - **No predictions** - only computable facts
@@ -323,7 +325,7 @@ Calculate business time accounting for country-specific weekends and holidays. S
 - Plan deliveries accounting for holidays
 
 ### list_holiday_countries
-**🌍 NEW in v1.4.0:** Discover which countries have holiday data. Returns all 251 supported countries with their codes and names.
+**🌍 NEW in v1.5.0:** Discover which countries have holiday data. Returns all 247+ supported countries with their codes and names.
 
 **Inputs:**
 - None required
@@ -334,47 +336,70 @@ Calculate business time accounting for country-specific weekends and holidays. S
 - Explore global coverage
 
 ### get_country_holidays
-**📅 NEW in v1.4.0:** Get ALL holidays for a country in a specific year. Returns complete list of national holidays, public holidays, and bank holidays.
+**📅 NEW in v1.5.0:** Get ALL holidays for a country in a specific year. Returns complete list with **category filtering** support.
 
 **Inputs:**
 - `country_code` (string, required): ISO 3166-1 alpha-2 country code (US, GB, JP, CN, IN, DE, FR, etc.)
-- `year` (number, optional): Year (defaults to current year)
-- `include_observed` (boolean, optional): Include observed dates when holidays fall on weekends (default: true)
+- `year` (number, required): Year (e.g., 2024, 2025)
+- `categories` (string, optional): Comma-separated categories to filter (e.g., 'public' for govt closures only, 'public,bank' for govt+bank holidays). If omitted, returns ALL categories.
+
+**Categories:**
+- **PUBLIC** - Government office closures (official days off)
+- **BANK** - Banking holidays
+- **SCHOOL** - School holidays
+- **OPTIONAL** - Optional/regional holidays
+- **GOVERNMENT** - Government employee holidays
 
 **Use cases:**
-- See all holidays for a country at once
+- Get only government closure days: `categories='public'`
+- Get all holidays including observances: omit `categories` parameter
 - Plan annual schedules
 - Understand local holiday patterns
-- Generate calendar applications
 
 ### check_holiday
-**✅ NEW in v1.4.0:** Check if a SPECIFIC date is a holiday in ONE country. Ultra-fast (<10ms) Yes/No answer with holiday name.
+**✅ NEW in v1.5.0:** Check if a SPECIFIC date is a PUBLIC holiday (govt closure) in ONE country. Ultra-fast (<10ms) Yes/No answer.
 
 **Inputs:**
 - `country_code` (string, required): ISO 3166-1 alpha-2 country code (US, GB, JP, etc.)
 - `date` (string, required): Date in YYYY-MM-DD format (e.g., '2024-12-25')
 
+**Returns:** Holiday name if it's a PUBLIC holiday, or null if not.
+
 **Use cases:**
 - Quick holiday lookup for scheduling
 - "Is tomorrow a holiday in Germany?"
 - Event planning
-- Appointment booking systems
+- Checks PUBLIC category only (government closures)
 
-### check_multi_country_holiday
-**🌐 NEW in v1.4.0:** Check if a date is a holiday across MULTIPLE countries simultaneously. Perfect for global team coordination.
+### list_financial_markets_holidays
+**🏦 NEW in v1.5.0:** Discover which financial markets have trading holiday calendars. Returns all 5 supported markets.
 
 **Inputs:**
-- `date` (string, required): Date in YYYY-MM-DD format
-- `countries` (array, required): Array of 2-20 country codes (e.g., ['US', 'GB', 'JP', 'IN', 'CN'])
+- None required
+
+**Returns:** XNYS (NYSE), XNSE (NSE India), BVMF (Brazil B3), XECB (ECB TARGET2), IFEU (ICE Futures Europe)
 
 **Use cases:**
-- Schedule international meetings
-- Find dates that work for global teams
-- Coordinate across time zones and holidays
-- "Can we meet on Dec 25 across US, UK, and Japan?"
+- Discover which markets are supported
+- Get market codes for trading holiday queries
+- Explore financial market coverage
+
+### get_market_holidays
+**📈 NEW in v1.5.0:** Get trading holidays when a financial market is CLOSED. Know when stock exchanges don't trade.
+
+**Inputs:**
+- `market_code` (string, required): XNYS (NYSE), XNSE (NSE India), BVMF (Brazil), XECB (ECB), IFEU (ICE Futures)
+- `year` (number, required): Year (e.g., 2024, 2025)
+
+**Use cases:**
+- "When is NYSE closed in 2024?"
+- "What are NSE India trading holidays?"
+- "Is the market open on this date?"
+- Trading strategy planning
+- Financial calendar integration
 
 ### check_business_day
-**💼 NEW in v1.4.0:** Check if a date is a BUSINESS day (not holiday AND not weekend). Focus on work/no-work status.
+**💼 NEW in v1.5.0:** Check if a date is a BUSINESS day (not PUBLIC holiday AND not weekend). Focus on work/no-work status.
 
 **Inputs:**
 - `country_code` (string, required): ISO 3166-1 alpha-2 country code
@@ -385,6 +410,7 @@ Calculate business time accounting for country-specific weekends and holidays. S
 - "Are offices open on this date?"
 - Business logic for scheduling
 - Delivery date calculations
+- Checks PUBLIC holidays only (government closures)
 
 ## Example Usage
 
