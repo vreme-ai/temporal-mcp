@@ -6,37 +6,21 @@
 
 # Vreme Temporal MCP Server
 
-MCP server providing temporal intelligence - timezone conversions, 32 cultural calendars, astronomical events, prayer times, **247+ countries' holiday data**, **5 financial markets**, business time calculations, and time-sensitive context.
+MCP server providing temporal intelligence - timezone conversions, 31 cultural calendars, astronomical events, prayer times, **247+ countries' holiday data**, **5 financial markets**, business time calculations, and **personalized temporal awareness** that adapts to YOUR cognitive rhythms.
 
-## ✨ What's New in v1.5.5
+## ✨ What's New in v1.6.1
 
-🧠 **Personalized Temporal Awareness** - Claude adapts to YOUR cognitive rhythms!
-- **`get_current_time` tool** - **Never again will an LLM not know what time it is for the user**
-- **`get_temporal_context` tool** - Personalized temporal awareness that adapts to your work patterns
-- **Local-only personalization** - Your temporal context stored locally in `~/.vreme/temporal-context.json` (no backend, no cloud)
-- **"Tomorrow" intelligence** - Work until 3am, say "let's finish tomorrow", sleep 3+ hours → Claude knows "tomorrow" means after you wake up
-- **Cognitive rhythm awareness** - Understands your sleep/wake cycles, context switches (1hr+ gaps), late night sessions
-- **Cross-client consistency** - Same temporal awareness across Claude Desktop, Continue, Cline - your rhythm, not the app's
-- **Privacy-first** - All personalization happens locally on your machine
+⚡ **Personalized Temporal Awareness** - Claude adapts to YOUR cognitive rhythms!
+- **3 NEW MCP Tools** - `get_user_cognitive_state`, `analyze_work_patterns`, `predict_user_availability`
+- **Local-only behavior tracking** - Analyzes your activity bursts to understand your cognitive rhythms
+- **Smart context switching** - 30-minute gap detection for natural work session boundaries
+- **Sleep pattern recognition** - Detects 2.5+ hour gaps during late night (10pm-6am)
+- **Lunch break detection** - Recognizes 30+ min breaks during lunch hours (11am-2pm)
+- **"Tomorrow" intelligence** - Work til 3am, say "tomorrow", sleep 3+ hrs → Claude knows you mean after you wake up
+- **Dual context files** - `temporal-context.json` (current time) + `behavior-context.json` (your patterns)
+- **Privacy-first** - All stored locally in `~/.vreme/` (no backend, no tracking, no surveillance)
 
-## ✨ What's New in v1.5.3
-
-📅 **Relative Date Resolver** - Convert expressions like "next Monday" to actual dates!
-- **Simple, documented rules** - No intent inference, just clear rules
-- **9+ expression types** - today, tomorrow, next/last weekday, in N days, etc.
-- **Elastic Tomorrow** - For night coders: "tomorrow" at 3 AM = today's calendar date (the day after you sleep)
-- **Timezone-aware** - All resolutions respect user's system timezone
-- **Perfect for LLMs** - Vreme computes dates, LLM handles user clarification
-
-## ✨ What's New in v1.5.0
-
-🎉 **Simplified Holiday Service** - Massive upgrade with category filtering!
-- **247+ countries** with comprehensive holiday data (US, CN, IN, GB, JP, DE, FR, BR, MX, RU, and 237+ more!)
-- **Category filtering** - PUBLIC (govt closures), BANK, SCHOOL, OPTIONAL, GOVERNMENT
-- **5 financial markets** - NYSE, NSE India, Brazil B3, ECB, ICE Futures Europe
-- **Trading holiday calendars** - Know when markets are closed
-- **Business day intelligence** - Smart checks for PUBLIC holidays + weekends
-- **Powered by python-holidays v0.86+** - Battle-tested, community-maintained database
+📝 **[Full Version History & Changelog](CHANGELOG.md)**
 
 ## Features
 
@@ -51,6 +35,7 @@ MCP server providing temporal intelligence - timezone conversions, 32 cultural c
 - **Powered by python-holidays v0.86+** - Community-maintained, accurate data
 
 ### ⏰ Temporal Intelligence
+- **Personalized Awareness** - Adapts to YOUR cognitive rhythms (sleep/wake, work bursts, lunch breaks)
 - **Natural language queries** - "What time is it in Tokyo?", "Is it Ramadan?", "Can I call Berlin now?"
 - **200+ timezones** - Complete pytz timezone database with DST handling
 - **Astronomical events** - Sunrise, sunset, moon phases, twilight times
@@ -60,6 +45,8 @@ MCP server providing temporal intelligence - timezone conversions, 32 cultural c
 - **Temporal Density Scoring** - Quantify how "significant" any date is culturally (0-100)
 - **Business Time Intelligence** - Calculate business days/hours accounting for country-specific weekends and holidays
 - **Historical Temporal Context** - Get comprehensive temporal snapshot for any historical date
+- **Context Switch Detection** - 30-minute gaps automatically detect natural cognitive boundaries
+- **Privacy-First** - All behavioral data stored locally in `~/.vreme/` (no backend)
 
 ### 📅 Cultural Calendars (32 Systems)
 
