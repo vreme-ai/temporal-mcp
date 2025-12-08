@@ -202,7 +202,7 @@ function formatResponse(response: QueryResponse): string {
 
 const server = new McpServer({
   name: "vreme-time-service",
-  version: "1.5.5",
+  version: "1.6.0",
 });
 
 // Configuration
