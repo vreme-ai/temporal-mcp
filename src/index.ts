@@ -8,13 +8,24 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
+import { ActivityBurst } from "./temporal-context.js";
+import { TemporalContextManager } from "./temporal-context-manager.js";
+import { TemporalContextGenerator } from "./temporal-context-generator.js";
 
 // API Configuration
 const VREME_API_URL = process.env.VREME_API_URL || "https://api.vreme.ai";
 
+/**
+ * Get system timezone using browser/Node.js Intl API
+ * Tested with timezone_mcp - works correctly in MCP environments
+ */
+function getSystemTimezone(): string {
+  return Intl.DateTimeFormat().resolvedOptions().timeZone;
+}
+
 interface QueryRequest {
   query: string;
-  user_timezone?: string;
+  tmz?: string;
 }
 
 interface QueryResponse {
@@ -47,12 +58,14 @@ interface TemporalAnalysisRequest {
   date: string;
   location?: string;
   include_fields?: string[];
+  tmz?: string;
 }
 
 interface TemporalComparisonRequest {
   date1: string;
   date2: string;
   location?: string;
+  tmz?: string;
 }
 
 interface BusinessTimeRequest {
@@ -62,6 +75,7 @@ interface BusinessTimeRequest {
   business_days?: number;
   country_code?: string;
   work_hours?: number[];
+  tmz?: string;
 }
 
 async function queryVremeAPI(request: QueryRequest): Promise<QueryResponse> {
@@ -187,19 +201,196 @@ function formatResponse(response: QueryResponse): string {
 
 const server = new McpServer({
   name: "vreme-time-service",
-  version: "1.4.0",
+  version: "1.5.5",
+});
+
+// Configuration
+const BURST_GAP_THRESHOLD_MINUTES = 15; // Configurable: gap that triggers new burst
+
+// Activity burst tracking (in-memory)
+let activityBursts: ActivityBurst[] = [];
+let currentBurstStart: Date = new Date();
+let lastInteractionTime: Date = new Date();
+let currentBurstCount: number = 0;
+const sessionId = `session-${Date.now()}`;
+
+// Initialize global context on startup
+TemporalContextManager.updateLastActivity(sessionId, 'vreme', 0);
+
+/**
+ * Update activity tracking - detects burst boundaries retroactively
+ */
+function updateActivityTracking() {
+  const now = new Date();
+  const gapMinutes = (now.getTime() - lastInteractionTime.getTime()) / (1000 * 60);
+  
+  if (gapMinutes > BURST_GAP_THRESHOLD_MINUTES) {
+    // Close previous burst (it ended at lastInteractionTime)
+    activityBursts.push({
+      start: currentBurstStart.toISOString(),
+      end: lastInteractionTime.toISOString(), // Retroactive end
+      interaction_count: currentBurstCount,
+      gap_to_next_minutes: Math.round(gapMinutes * 10) / 10
+    });
+    
+    // Prune bursts older than 24 hours
+    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    activityBursts = activityBursts.filter(burst => 
+      new Date(burst.end) > oneDayAgo
+    );
+    
+    // Start new burst
+    currentBurstStart = now;
+    currentBurstCount = 1;
+  } else {
+    // Continue current burst
+    currentBurstCount++;
+  }
+  
+  lastInteractionTime = now;
+  
+  // Update global context
+  TemporalContextManager.updateLastActivity(sessionId, 'vreme', currentBurstCount);
+}
+
+server.registerTool("get_temporal_context", {
+  description: "🧠 CALL BEFORE EVERY RESPONSE - This tool provides you (Claude) with real-time temporal awareness. Call this BEFORE EVERY response to the user to get the current time, date, timezone, time of day (morning/afternoon/evening/night), and activity tracking. Time changes constantly - you need fresh temporal data for EACH interaction. This helps you stay temporally grounded and aware of how long the conversation has been going. NO PARAMETERS REQUIRED. Call it silently without mentioning it to the user unless they specifically ask about time.",
+  inputSchema: {
+    // No parameters - automatically provides full temporal context
+  },
+}, async () => {
+  updateActivityTracking(); // Track activity burst
+  try {
+    const globalContext = TemporalContextManager.loadGlobalContext();
+    const now = new Date();
+    const systemTimezone = getSystemTimezone();
+    const hour = parseInt(now.toLocaleString('en-US', {
+      hour: 'numeric',
+      hour12: false,
+      timeZone: systemTimezone
+    }));
+
+    const context = {
+      current_datetime: now.toISOString(),
+      timezone: systemTimezone,
+      day_of_week: now.toLocaleDateString('en-US', { weekday: 'long', timeZone: systemTimezone }),
+      time_of_day: getTimeOfDay(hour),
+      date_string: now.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        timeZone: systemTimezone
+      }),
+      time_string: now.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        timeZone: systemTimezone,
+        timeZoneName: 'short'
+      }),
+      last_global_activity: globalContext.last_global_activity,
+      days_since_last_activity: TemporalContextManager.getDaysSinceLastActivity(),
+      context_switch_detected: TemporalContextManager.detectContextSwitch(),
+      is_late_night: hour >= 23 || hour < 6,
+      is_early_morning: hour < 6,
+      cognitive_day_boundary: hour < 6
+    };
+
+    return {
+      content: [{
+        type: "text",
+        text: JSON.stringify(context, null, 2)
+      }]
+    };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return {
+      content: [{ type: "text", text: JSON.stringify({ error: msg }) }],
+      isError: true,
+    };
+  }
+});
+
+server.registerTool("get_current_time", {
+  description: "⏰ CURRENT TIME TOOL - USE THIS WHEN USER ASKS 'What time is it?', 'What's the time?', 'Current time?', or any variation asking for the current time. This tool automatically uses the user's system timezone (detected from their computer) and returns structured temporal data. NO PARAMETERS REQUIRED - just call this tool immediately when user asks for current time. Returns structured data: ISO datetime, timezone, day_of_week, date_string, time_string, time_of_day. LLM formats this into natural language response.",
+  inputSchema: {
+    // No parameters - tool automatically detects system timezone
+  },
+}, async () => {
+  updateActivityTracking(); // Track activity burst
+  try {
+    const systemTimezone = getSystemTimezone();
+    const now = new Date();
+    
+    // Get date components in user's timezone
+    const dateStr = now.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      timeZone: systemTimezone
+    });
+    
+    const timeStr = now.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      second: '2-digit',
+      timeZone: systemTimezone,
+      timeZoneName: 'short'
+    });
+    
+    // Determine time of day
+    const hour = now.toLocaleString('en-US', {
+      hour: 'numeric',
+      hour12: false,
+      timeZone: systemTimezone
+    });
+    const hourNum = parseInt(hour);
+    let timeOfDay = "evening";
+    if (hourNum >= 5 && hourNum < 12) timeOfDay = "morning";
+    else if (hourNum >= 12 && hourNum < 17) timeOfDay = "afternoon";
+    else if (hourNum >= 17 && hourNum < 21) timeOfDay = "evening";
+    else timeOfDay = "night";
+    
+    // Return structured data - LLM will format it
+    const data = {
+      datetime_iso: now.toISOString(),
+      timezone: systemTimezone,
+      day_of_week: now.toLocaleDateString('en-US', { weekday: 'long', timeZone: systemTimezone }),
+      date_string: dateStr,
+      time_string: timeStr,
+      time_of_day: timeOfDay,
+      hour: hourNum,
+      minute: now.toLocaleString('en-US', { minute: '2-digit', timeZone: systemTimezone }),
+      second: now.toLocaleString('en-US', { second: '2-digit', timeZone: systemTimezone })
+    };
+    
+    return { 
+      content: [{ 
+        type: "text", 
+        text: JSON.stringify(data, null, 2) 
+      }] 
+    };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return {
+      content: [{ type: "text", text: JSON.stringify({ error: msg }) }],
+      isError: true,
+    };
+  }
 });
 
 server.registerTool("query_time", {
-  description: "🔹 NATURAL LANGUAGE CONVENIENCE TOOL: Ask questions about time, calendars, and observances in plain English. Use this for: 'What time is it in Tokyo?', 'When is Ramadan?', 'Is it Diwali?', 'What's the moon phase?'. Returns rich context including 31 calendars, astronomical events, and cultural observances. ⚠️ Slower than specialized tools - prefer check_holiday for simple holiday lookups, query_prayer_times for prayer times, or check_activity_appropriateness for meeting appropriateness.",
+  description: "🔹 NATURAL LANGUAGE CONVENIENCE TOOL: Ask questions about time, calendars, and observances in plain English. Use this for: 'What time is it in Tokyo?', 'When is Ramadan?', 'Is it Diwali?', 'What's the moon phase?'. Returns rich context including 31 calendars, astronomical events, and cultural observances. ⚠️ DO NOT use this for simple 'What time is it?' queries - use get_current_time instead. ⚠️ Slower than specialized tools - prefer check_holiday for simple holiday lookups, query_prayer_times for prayer times, or check_activity_appropriateness for meeting appropriateness.",
   inputSchema: {
     query: z.string().describe("Natural language temporal query (e.g., 'What time is it in Tokyo?', 'When is Ramadan?')"),
     user_timezone: z.string().optional().describe("Optional: Your timezone for relative time calculations"),
   },
 }, async ({ query, user_timezone }) => {
+  updateActivityTracking(); // Track activity burst
   try {
     if (!query) throw new Error("Query parameter is required");
-    const response = await queryVremeAPI({ query, user_timezone });
+    const systemTimezone = getSystemTimezone();
+    const response = await queryVremeAPI({ query, tmz: systemTimezone });
     return { content: [{ type: "text", text: formatResponse(response) }] };
   } catch (error) {
     const msg = error instanceof Error ? error.message : "Unknown error";
@@ -217,10 +408,12 @@ server.registerTool("query_prayer_times", {
     prayer: z.string().optional().describe("Optional: Specific prayer name ('fajr', 'dhuhr', 'asr', 'maghrib', 'isha')"),
   },
 }, async ({ location, prayer }) => {
+  updateActivityTracking(); // Track activity burst
   try {
     if (!location) throw new Error("Location parameter is required");
+    const systemTimezone = getSystemTimezone();
     const query = prayer ? `When is ${prayer} in ${location}?` : `What are prayer times in ${location}?`;
-    const response = await queryVremeAPI({ query });
+    const response = await queryVremeAPI({ query, tmz: systemTimezone });
     return { content: [{ type: "text", text: formatResponse(response) }] };
   } catch (error) {
     const msg = error instanceof Error ? error.message : "Unknown error";
@@ -238,10 +431,11 @@ server.registerTool("check_activity_appropriateness", {
 }, async ({ location, activity, user_timezone }) => {
   try {
     if (!location) throw new Error("Location parameter is required");
+    const systemTimezone = getSystemTimezone();
     let query = `Is it a good time to call someone in ${location}?`;
     if (activity === "work") query = `Is it appropriate for work in ${location}?`;
     else if (activity === "meeting") query = `Is it a good time for a meeting in ${location}?`;
-    const response = await queryVremeAPI({ query, user_timezone });
+    const response = await queryVremeAPI({ query, tmz: systemTimezone });
     return { content: [{ type: "text", text: formatResponse(response) }] };
   } catch (error) {
     const msg = error instanceof Error ? error.message : "Unknown error";
@@ -257,10 +451,12 @@ server.registerTool("analyze_temporal_context", {
     include_fields: z.array(z.string()).optional().describe("Optional: Specific fields to include - ['calendars', 'observances', 'astronomical', 'business', 'seasonal', 'density']. Omit for all fields."),
   },
 }, async ({ date, location, include_fields }) => {
+  updateActivityTracking(); // Track activity burst
   try {
     if (!date) throw new Error("Date parameter is required");
     
-    const requestBody: TemporalAnalysisRequest = { date };
+    const systemTimezone = getSystemTimezone();
+    const requestBody: TemporalAnalysisRequest = { date, tmz: systemTimezone };
     if (location) requestBody.location = location;
     // Treat empty array as "include everything" (undefined)
     if (include_fields && include_fields.length > 0) {
@@ -339,10 +535,12 @@ server.registerTool("compare_dates", {
     location: z.string().optional().describe("Optional: Location context for observances"),
   },
 }, async ({ date1, date2, location }) => {
+  updateActivityTracking(); // Track activity burst
   try {
     if (!date1 || !date2) throw new Error("Both date1 and date2 parameters are required");
     
-    const requestBody: TemporalComparisonRequest = { date1, date2 };
+    const systemTimezone = getSystemTimezone();
+    const requestBody: TemporalComparisonRequest = { date1, date2, tmz: systemTimezone };
     if (location) requestBody.location = location;
     
     const response = await fetch(`${VREME_API_URL}/temporal/compare`, {
@@ -425,15 +623,18 @@ server.registerTool("calculate_business_time", {
     work_hours: z.array(z.number()).optional().describe("Work hours [start, end] for hours_between (default: [9, 17])"),
   },
 }, async ({ operation, start_date, end_date, business_days, country_code, work_hours }) => {
+  updateActivityTracking(); // Track activity burst
   try {
     if (!operation || !start_date) {
       throw new Error("operation and start_date parameters are required");
     }
     
+    const systemTimezone = getSystemTimezone();
     const requestBody: BusinessTimeRequest = {
       operation,
       start_date,
       country_code: country_code || 'US',
+      tmz: systemTimezone,
     };
     
     if (end_date) requestBody.end_date = end_date;
@@ -494,8 +695,13 @@ server.registerTool("list_holiday_countries", {
   description: "🌍 DISCOVERY TOOL: List all 247+ countries with holiday data support. Use this when user asks 'which countries do you support?' or 'do you have data for Brazil?'. Returns country codes and names. For actual holiday data, use get_country_holidays. NOT for checking if a date is a holiday (use check_holiday).",
   inputSchema: {},
 }, async () => {
+  updateActivityTracking(); // Track activity burst
   try {
-    const response = await fetch(`${VREME_API_URL}/holidays/countries`);
+    const systemTimezone = getSystemTimezone();
+    const url = new URL(`${VREME_API_URL}/holidays/countries`);
+    url.searchParams.append('tmz', systemTimezone);
+    
+    const response = await fetch(url);
     
     if (!response.ok) {
       const errorText = await response.text();
@@ -541,14 +747,17 @@ server.registerTool("get_country_holidays", {
     categories: z.string().optional().describe("Optional: comma-separated categories to filter (e.g., 'public' for govt closures only, 'public,bank' for govt+bank holidays). If omitted, returns ALL categories."),
   },
 }, async ({ country_code, year, categories }) => {
+  updateActivityTracking(); // Track activity burst
   try {
     if (!country_code) throw new Error("country_code parameter is required");
     if (!year) throw new Error("year parameter is required");
     
+    const systemTimezone = getSystemTimezone();
     const params = new URLSearchParams();
     if (categories) params.append('categories', categories);
+    params.append('tmz', systemTimezone);
     
-    const url = `${VREME_API_URL}/holidays/${country_code}/${year}${params.toString() ? '?' + params.toString() : ''}`;
+    const url = `${VREME_API_URL}/holidays/${country_code}/${year}?${params.toString()}`;
     const response = await fetch(url);
     
     if (!response.ok) {
@@ -591,11 +800,16 @@ server.registerTool("check_holiday", {
     date: z.string().describe("Date to check in YYYY-MM-DD format (e.g., '2024-12-25')"),
   },
 }, async ({ country_code, date }) => {
+  updateActivityTracking(); // Track activity burst
   try {
     if (!country_code) throw new Error("country_code parameter is required");
     if (!date) throw new Error("date parameter is required");
     
-    const response = await fetch(`${VREME_API_URL}/holidays/${country_code}/${date}/check`);
+    const systemTimezone = getSystemTimezone();
+    const url = new URL(`${VREME_API_URL}/holidays/${country_code}/${date}/check`);
+    url.searchParams.append('tmz', systemTimezone);
+    
+    const response = await fetch(url);
     
     if (!response.ok) {
       const errorText = await response.text();
@@ -633,8 +847,13 @@ server.registerTool("list_financial_markets_holidays", {
   description: "🏦 FINANCIAL MARKETS DISCOVERY: List all 5 supported financial markets with trading holiday calendars. Use this when user asks about stock markets, exchanges, or trading holidays. Returns: XNYS (NYSE), XNSE (NSE India), BVMF (Brazil), XECB (ECB TARGET2), IFEU (ICE Futures Europe). For actual trading holidays, use get_market_holidays.",
   inputSchema: {},
 }, async () => {
+  updateActivityTracking(); // Track activity burst
   try {
-    const response = await fetch(`${VREME_API_URL}/holidays/markets`);
+    const systemTimezone = getSystemTimezone();
+    const url = new URL(`${VREME_API_URL}/holidays/markets`);
+    url.searchParams.append('tmz', systemTimezone);
+    
+    const response = await fetch(url);
     
     if (!response.ok) {
       const errorText = await response.text();
@@ -668,11 +887,16 @@ server.registerTool("get_market_holidays", {
     year: z.number().describe("Year to get trading holidays for (e.g., 2024, 2025)"),
   },
 }, async ({ market_code, year }) => {
+  updateActivityTracking(); // Track activity burst
   try {
     if (!market_code) throw new Error("market_code parameter is required");
     if (!year) throw new Error("year parameter is required");
     
-    const response = await fetch(`${VREME_API_URL}/holidays/markets/${market_code}/${year}`);
+    const systemTimezone = getSystemTimezone();
+    const url = new URL(`${VREME_API_URL}/holidays/markets/${market_code}/${year}`);
+    url.searchParams.append('tmz', systemTimezone);
+    
+    const response = await fetch(url);
     
     if (!response.ok) {
       const errorText = await response.text();
@@ -708,11 +932,16 @@ server.registerTool("check_business_day", {
     date: z.string().describe("Date to check in YYYY-MM-DD format (e.g., '2024-12-25')"),
   },
 }, async ({ country_code, date }) => {
+  updateActivityTracking(); // Track activity burst
   try {
     if (!country_code) throw new Error("country_code parameter is required");
     if (!date) throw new Error("date parameter is required");
     
-    const response = await fetch(`${VREME_API_URL}/holidays/${country_code}/${date}/business-day`);
+    const systemTimezone = getSystemTimezone();
+    const url = new URL(`${VREME_API_URL}/holidays/${country_code}/${date}/business-day`);
+    url.searchParams.append('tmz', systemTimezone);
+    
+    const response = await fetch(url);
     
     if (!response.ok) {
       const errorText = await response.text();
@@ -757,12 +986,17 @@ server.registerTool("validate_date", {
     day: z.number().describe("Day (1-31)"),
   },
 }, async ({ year, month, day }) => {
+  updateActivityTracking(); // Track activity burst
   try {
     if (!year || !month || !day) {
       throw new Error("year, month, and day are required");
     }
     
-    const response = await fetch(`${VREME_API_URL}/validate/date/${year}/${month}/${day}`);
+    const systemTimezone = getSystemTimezone();
+    const url = new URL(`${VREME_API_URL}/validate/date/${year}/${month}/${day}`);
+    url.searchParams.append('tmz', systemTimezone);
+    
+    const response = await fetch(url);
     
     if (!response.ok) {
       const errorText = await response.text();
@@ -825,15 +1059,17 @@ server.registerTool("add_business_days_detailed", {
     country_code: z.string().describe("ISO 3166-1 alpha-2 country code (US, GB, JP, etc.)"),
   },
 }, async ({ start_date, business_days, country_code }) => {
+  updateActivityTracking(); // Track activity burst
   try {
     if (!start_date || business_days === undefined || !country_code) {
       throw new Error("start_date, business_days, and country_code are required");
     }
     
+    const systemTimezone = getSystemTimezone();
     const response = await fetch(`${VREME_API_URL}/business-days/add-with-metadata`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ start_date, business_days, country_code }),
+      body: JSON.stringify({ start_date, business_days, country_code, tmz: systemTimezone }),
     });
     
     if (!response.ok) {
@@ -885,18 +1121,180 @@ server.registerTool("add_business_days_detailed", {
   }
 });
 
+// ============================================================
+// RELATIVE DATE RESOLVER TOOL
+// ============================================================
+
+server.registerTool("resolve_relative_date", {
+  description: "📅 RELATIVE DATE RESOLVER: Convert expressions like 'next Monday', 'tomorrow', 'in 3 days' to actual dates. Uses simple, documented rules (e.g., 'next Monday' = forward to next occurrence, minimum 1 day). Returns the resolved date with explanation. Supports 'Elastic Tomorrow' for night coders (opt-in).",
+  inputSchema: z.object({
+    expression: z.string().describe("Relative date expression (e.g., 'next Monday', 'tomorrow', 'in 3 days', 'last Friday')"),
+    reference_datetime: z.string().optional().describe("Reference datetime (ISO 8601). Defaults to now."),
+    use_elastic_tomorrow: z.boolean().optional().describe("Enable 'Elastic Tomorrow' rule for late-night coding (default: false)"),
+    elastic_threshold_hour: z.number().optional().describe("Elastic boundary hour (default: 6 AM)")
+  })
+}, async ({ expression, reference_datetime, use_elastic_tomorrow, elastic_threshold_hour }) => {
+  updateActivityTracking(); // Track activity burst
+  try {
+    const systemTimezone = getSystemTimezone();
+    
+    const response = await fetch(`${VREME_API_URL}/resolve/relative-date`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        expression,
+        reference_datetime: reference_datetime || new Date().toISOString(),
+        tmz: systemTimezone,
+        use_elastic_tomorrow: use_elastic_tomorrow || false,
+        elastic_threshold_hour: elastic_threshold_hour || 6
+      })
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`API request failed: ${response.status} ${errorText}`);
+    }
+    
+    const data = await response.json() as any;
+    
+    let output = `## 📅 Relative Date Resolution\n\n`;
+    
+    if (data.error) {
+      output += `**Error:** ${data.error}\n\n`;
+      output += `**Supported expressions:**\n`;
+      data.supported.forEach((s: string) => {
+        output += `- ${s}\n`;
+      });
+    } else {
+      output += `**Expression:** "${expression}"\n`;
+      output += `**Resolved Date:** ${data.resolved_date} (${data.day_of_week})\n`;
+      output += `**Rule:** ${data.rule_applied}\n\n`;
+      output += `**Explanation:** ${data.explanation}\n`;
+      
+      if (data.elastic_applied) {
+        output += `\n**Elastic Tomorrow Applied:** Yes (threshold: ${data.threshold_hour} AM)\n`;
+      }
+    }
+    
+    return { content: [{ type: "text", text: output }] };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return {
+      content: [{ type: "text", text: `Error: ${msg}` }],
+      isError: true
+    };
+  }
+});
+
+// ============================================================
+// MCP RESOURCE SUPPORT (for temporal context auto-injection)
+// ============================================================
+
+// Helper function for time of day
+function getTimeOfDay(hour: number): string {
+  if (hour >= 5 && hour < 12) return "morning";
+  if (hour >= 12 && hour < 17) return "afternoon";
+  if (hour >= 17 && hour < 21) return "evening";
+  return "night";
+}
+
+// Helper function for timezone offset
+function formatTimezoneOffset(date: Date): string {
+  const offset = date.getTimezoneOffset();
+  const offsetHours = Math.abs(offset / 60);
+  const offsetSign = offset <= 0 ? '+' : '-';
+  return `${offsetSign}${offsetHours.toString().padStart(2, '0')}:00`;
+}
+
+// Register temporal context resource
+server.registerResource(
+  "temporal-context",
+  "vreme://temporal-context",
+  {
+    title: "Temporal Context",
+    description: "Current temporal state and global activity tracking from file-based context",
+    mimeType: "application/json",
+    _meta: {
+      annotations: {
+        audience: ["assistant"], // For LLM, not user
+        priority: 1.0 // Highest priority - always include
+      }
+    }
+  },
+  async (uri: URL, extra) => {
+    // Log when resource is requested (for debugging)
+    console.error(`[RESOURCE] vreme://temporal-context requested at ${new Date().toISOString()}`);
+    
+    // Read file-based global context only (no in-memory bursts)
+    const globalContext = TemporalContextManager.loadGlobalContext();
+    
+    // Add current temporal state
+    const now = new Date();
+    const systemTimezone = getSystemTimezone();
+    const hour = parseInt(now.toLocaleString('en-US', {
+      hour: 'numeric',
+      hour12: false,
+      timeZone: systemTimezone
+    }));
+    
+    const context = {
+      current_datetime: now.toISOString(),
+      timezone: systemTimezone,
+      day_of_week: now.toLocaleDateString('en-US', { weekday: 'long', timeZone: systemTimezone }),
+      time_of_day: getTimeOfDay(hour),
+      
+      // File-based global context
+      last_global_activity: globalContext.last_global_activity,
+      last_timezone: globalContext.last_timezone,
+      days_since_last_activity: TemporalContextManager.getDaysSinceLastActivity(),
+      context_switch_detected: TemporalContextManager.detectContextSwitch(),
+      
+      // Temporal grounding
+      temporal_grounding: {
+        current_date: now.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          timeZone: systemTimezone
+        }),
+        current_time: now.toLocaleTimeString('en-US', {
+          hour: 'numeric',
+          minute: '2-digit',
+          timeZone: systemTimezone,
+          timeZoneName: 'short'
+        }),
+        timezone_offset: formatTimezoneOffset(now)
+      }
+    };
+    
+    return {
+      contents: [
+        {
+          uri: uri.toString(),
+          mimeType: "application/json",
+          text: JSON.stringify(context, null, 2)
+        }
+      ]
+    };
+  }
+);
+
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("=== VREME MCP Server v1.5.1 ===");
+  console.error("=== VREME MCP Server v1.5.5 ===");
   console.error("Vreme Time Service MCP Server running");
   console.error(`API URL: ${VREME_API_URL}`);
-  console.error("Available tools:");
+  console.error("Available tools (17 total):");
+  console.error("  🧠 get_temporal_context - AUTO-CALL at conversation start for temporal awareness");
+  console.error("  - get_current_time - Use for 'What time is it?' queries");
   console.error("  - query_time, query_prayer_times, check_activity_appropriateness");
   console.error("  - analyze_temporal_context, compare_dates, calculate_business_time");
   console.error("  - list_holiday_countries, get_country_holidays, check_holiday, check_business_day");
   console.error("  - list_financial_markets_holidays, get_market_holidays");
-  console.error("  - validate_date, add_business_days_detailed (NEW in v1.5.1)");
+  console.error("  - validate_date, add_business_days_detailed");
+  console.error("  - resolve_relative_date");
+  console.error("  - All tools now pass system timezone automatically");
 }
 
 main().catch((error) => {
