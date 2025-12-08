@@ -202,7 +202,7 @@ function formatResponse(response: QueryResponse): string {
 
 const server = new McpServer({
   name: "vreme-time-service",
-  version: "1.6.0",
+  version: "1.6.1",
 });
 
 // Configuration
@@ -1589,7 +1589,7 @@ server.registerResource(
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("=== VREME MCP Server v1.6.0 ===");
+  console.error("=== VREME MCP Server v1.6.1 ===");
   console.error("Vreme Time Service MCP Server running");
   console.error(`API URL: ${VREME_API_URL}`);
   console.error("Available tools (20 total):");

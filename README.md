@@ -8,7 +8,7 @@
 
 MCP server providing temporal intelligence - timezone conversions, 31 cultural calendars, astronomical events, prayer times, **247+ countries' holiday data**, **5 financial markets**, business time calculations, and **personalized temporal awareness** that adapts to YOUR cognitive rhythms.
 
-## ✨ What's New in v1.6.0
+## ✨ What's New in v1.6.1
 
 ⚡ **Personalized Temporal Awareness** - Claude adapts to YOUR cognitive rhythms!
 - **Local-only behavior tracking** - Analyzes your activity bursts to understand your cognitive rhythms
