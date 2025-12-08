@@ -10,14 +10,14 @@ MCP server providing temporal intelligence - timezone conversions, 32 cultural c
 
 ## ✨ What's New in v1.5.5
 
-🧠 **Temporal Context & Activity Tracking** - Give Claude a sense of time!
+🧠 **Personalized Temporal Awareness** - Claude adapts to YOUR cognitive rhythms!
 - **`get_current_time` tool** - **Never again will an LLM not know what time it is for the user**
-- **`get_temporal_context` tool** - Real-time temporal awareness with activity tracking
-- **Cross-session activity tracking** - Knows when you've been away from AI activity (any client)
+- **`get_temporal_context` tool** - Personalized temporal awareness that adapts to your work patterns
+- **Local-only personalization** - Your temporal context stored locally in `~/.vreme/temporal-context.json` (no backend, no cloud)
 - **"Tomorrow" intelligence** - Work until 3am, say "let's finish tomorrow", sleep 3+ hours → Claude knows "tomorrow" means after you wake up
-- **Cognitive boundaries** - Detects sleep/wake cycles, context switches (1hr+ gaps), late night sessions
-- **Persistent state** - Tracks global activity in `~/.vreme/temporal-context.json` across all MCP clients
-- **Temporal grounding** - Time of day, day of week, relative time awareness
+- **Cognitive rhythm awareness** - Understands your sleep/wake cycles, context switches (1hr+ gaps), late night sessions
+- **Cross-client consistency** - Same temporal awareness across Claude Desktop, Continue, Cline - your rhythm, not the app's
+- **Privacy-first** - All personalization happens locally on your machine
 
 ## ✨ What's New in v1.5.3
 

@@ -2,11 +2,13 @@
 
 ## Main Tweet (280 chars max)
 
-🧠 Vreme MCP v1.5.5: Give Claude a sense of time
+🧠 Vreme MCP v1.5.5: Claude adapts to your cognitive rhythms
 
 ✨ Never again: LLMs not knowing what time it is
-⏰ get_current_time - always knows user's current time/timezone
-🌙 Activity tracking across sessions - work til 3am, say "tomorrow", sleep 3hrs → Claude knows "tomorrow" = after wake
+⏰ get_current_time - always knows your current time/timezone
+🌙 Personalized temporal awareness - work til 3am, say "tomorrow", sleep 3hrs → Claude knows "tomorrow" = after wake
+
+Privacy-first. Local-only.
 
 npm i -g @vreme/temporal-mcp
 
@@ -16,13 +18,15 @@ npm i -g @vreme/temporal-mcp
 
 ### Option 1: Technical Thread
 
-1/4 🧠 Vreme MCP v1.5.5 dropped: Temporal context & activity tracking
+1/4 🧠 Vreme MCP v1.5.5: Personalized temporal awareness
 
-Never again will Claude be confused about what time it is for you.
+Claude now adapts to YOUR cognitive rhythms.
 
 New tools:
-⏰ get_current_time
-🧠 get_temporal_context
+⏰ get_current_time - never confused about time
+🧠 get_temporal_context - understands your work patterns
+
+Privacy-first. Local-only.
 
 npm install -g @vreme/temporal-mcp
 
@@ -35,16 +39,16 @@ You: "Let's finish this tomorrow"
 📅 Tomorrow = Dec 9 (technically)
 😴 But you mean: after you wake up
 
-LLMs don't understand sleep/wake cycles. Until now.
+LLMs don't understand your cognitive rhythms. Until now.
 
 ---
 
 3/4 How it works:
 
-✅ Tracks activity across ALL MCP clients globally
+✅ Local personalization in ~/.vreme/temporal-context.json
+✅ No backend, no cloud, no tracking
 ✅ Detects gaps (1hr+ = context switch, 3hr+ = sleep)
-✅ Persistent state in ~/.vreme/temporal-context.json
-✅ Cognitive boundaries: late night, early morning, time of day
+✅ Works across ALL MCP clients (Claude Desktop, Continue, Cline)
 
 Work til 3am → sleep → wake → Claude knows the new context
 
@@ -80,9 +84,9 @@ Vreme v1.5.5 fixes this 👇
 
 ---
 
-2/3 🧠 New: Activity Tracking
+2/3 🧠 New: Personalized Temporal Awareness
 
-Vreme now tracks when you've been away from AI activity (across all clients):
+Claude adapts to YOUR cognitive rhythms (across all MCP clients):
 
 • Work til 3am ✅
 • Say "tomorrow" ✅
@@ -90,7 +94,8 @@ Vreme now tracks when you've been away from AI activity (across all clients):
 • Wake up ✅
 • Claude knows "tomorrow" = NOW ✅
 
-Persistent global state in ~/.vreme/temporal-context.json
+Local-only. Privacy-first. No tracking.
+~/.vreme/temporal-context.json
 
 ---
 
@@ -119,8 +124,10 @@ Never again:
 
 Now:
 ✅ get_current_time - always knows
-✅ Activity tracking - understands sleep/wake
+✅ Adapts to your cognitive rhythms
 ✅ 32 calendars, 247 countries, prayer times
+
+Privacy-first. Local-only. No tracking.
 
 npm i -g @vreme/temporal-mcp
 https://vreme.ai/mcp
