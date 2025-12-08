@@ -147,7 +147,8 @@ export class BehaviorContextManager {
                 gap_start: lastGlobalActivity.toISOString(),
                 gap_end: now.toISOString(),
                 gap_length_mins: Math.round(gapMinutes),
-                detected_at_hour: lastActivityHour
+                detected_at_hour: lastActivityHour,
+                timezone: lastTimezone
               };
               context.estimated_sleep_gaps.push(sleepGap);
 
@@ -174,7 +175,8 @@ export class BehaviorContextManager {
                 gap_start: lastGlobalActivity.toISOString(),
                 gap_end: now.toISOString(),
                 gap_length_mins: Math.round(gapMinutes),
-                detected_at_hour: gapStartHour
+                detected_at_hour: gapStartHour,
+                timezone: lastTimezone
               };
               context.estimated_lunch_gaps.push(lunchGap);
 
@@ -193,13 +195,15 @@ export class BehaviorContextManager {
           burst_end: now.toISOString(),
           burst_length_mins: 0,
           interaction_count: interactionCount,
+          timezone: lastTimezone,
           project: project
         };
       } else {
-        // Continue current session - just update end time, count, and length
+        // Continue current session - just update end time, count, length, and timezone
         if (context.current_session) {
           context.current_session.burst_end = now.toISOString();
           context.current_session.interaction_count += interactionCount;
+          context.current_session.timezone = lastTimezone; // Update in case user changed timezone
 
           // Update burst length
           const sessionStart = new Date(context.current_session.burst_start);

@@ -9,6 +9,7 @@ export interface ActivitySession {
   burst_end: string; // ISO 8601 - last interaction (continuously updated)
   burst_length_mins: number; // Duration of this session in minutes
   interaction_count: number;
+  timezone: string; // Timezone during this session (user may travel/change timezone)
   project?: string;
 }
 
@@ -17,6 +18,7 @@ export interface SleepGap {
   gap_end: string; // ISO 8601 - when activity resumed
   gap_length_mins: number; // Duration of sleep gap in minutes
   detected_at_hour: number; // What hour (local) was the last activity before sleep (e.g., 23 = 11pm)
+  timezone: string; // Timezone when gap was detected
 }
 
 export interface LunchGap {
@@ -24,6 +26,7 @@ export interface LunchGap {
   gap_end: string; // ISO 8601 - when activity resumed
   gap_length_mins: number; // Duration of lunch gap in minutes
   detected_at_hour: number; // What hour (local) was the gap detected (11-14 = lunch hours)
+  timezone: string; // Timezone when gap was detected
 }
 
 export interface BehaviorContext {
