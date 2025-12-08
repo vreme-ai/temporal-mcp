@@ -6,7 +6,25 @@
 
 # Vreme Temporal MCP Server
 
-MCP server providing temporal intelligence - timezone conversions, 31 cultural calendars, astronomical events, prayer times, **247+ countries' holiday data**, **5 financial markets**, business time calculations, and time-sensitive context.
+MCP server providing temporal intelligence - timezone conversions, 32 cultural calendars, astronomical events, prayer times, **247+ countries' holiday data**, **5 financial markets**, business time calculations, and time-sensitive context.
+
+## ✨ What's New in v1.5.5
+
+🧠 **Temporal Context & Activity Tracking** - Give Claude a sense of time!
+- **`get_temporal_context` tool** - Provides Claude with real-time temporal awareness
+- **Activity tracking** - Track conversation bursts and context switches across sessions
+- **Persistent state** - Remembers last activity timestamps globally in `~/.vreme/temporal-context.json`
+- **Cognitive indicators** - Late night, early morning, and temporal boundary detection
+- **Temporal grounding** - Helps Claude understand "now" and passage of time
+
+## ✨ What's New in v1.5.3
+
+📅 **Relative Date Resolver** - Convert expressions like "next Monday" to actual dates!
+- **Simple, documented rules** - No intent inference, just clear rules
+- **9+ expression types** - today, tomorrow, next/last weekday, in N days, etc.
+- **Elastic Tomorrow** - For night coders: "tomorrow" at 3 AM = today's calendar date (the day after you sleep)
+- **Timezone-aware** - All resolutions respect user's system timezone
+- **Perfect for LLMs** - Vreme computes dates, LLM handles user clarification
 
 ## ✨ What's New in v1.5.0
 
@@ -41,7 +59,7 @@ MCP server providing temporal intelligence - timezone conversions, 31 cultural c
 - **Business Time Intelligence** - Calculate business days/hours accounting for country-specific weekends and holidays
 - **Historical Temporal Context** - Get comprehensive temporal snapshot for any historical date
 
-### 📅 Cultural Calendars (31 Systems)
+### 📅 Cultural Calendars (32 Systems)
 
 **Major Religious & Cultural Calendars:**
 - **Hebrew** - Shabbat detection, holiday observances, work restrictions, Torah portions
@@ -225,6 +243,37 @@ Add to your Continue configuration following their MCP setup guide.
 Add to your Cline configuration following their MCP setup guide.
 
 ## Available Tools
+
+### get_temporal_context
+**🧠 NEW in v1.5.5:** Provides Claude with real-time temporal awareness and activity tracking. This tool gives Claude continuous temporal context including current time, date, timezone, time of day, and global activity history. **Claude may call this automatically to maintain temporal awareness throughout conversations.** No parameters required.
+
+**What it provides:**
+- Current datetime (ISO 8601) and timezone
+- Day of week and time of day (morning/afternoon/evening/night)
+- Human-readable date and time strings
+- Last global activity timestamp
+- Days since last activity
+- Context switch detection (gaps > 1 hour)
+- Cognitive state indicators (late night, early morning, boundary detection)
+
+**Inputs:**
+- None required - automatically provides full temporal context
+
+**Use case:** Enables Claude to stay temporally grounded and understand when interactions are happening, how much time has passed, and detect context switches between conversations.
+
+### get_current_time
+**⏰ NEW in v1.5.4:** Get the current time in the user's system timezone. **USE THIS TOOL when user asks "What time is it?", "What's the time?", "Current time?", or any variation asking for the current time.** No parameters required - automatically detects and uses the user's system timezone. Returns current date, time, timezone, day of week, and time of day (morning/afternoon/evening/night).
+
+**Inputs:**
+- None required - automatically uses system timezone
+
+**Example queries:**
+- "What time is it?"
+- "What's the time?"
+- "Current time?"
+- "What time is it now?"
+
+**Why this tool exists:** Explicitly designed for simple "what time is it?" queries. Claude should call this immediately without asking for location/timezone clarification.
 
 ### query_time
 Query temporal information using natural language. Returns comprehensive temporal context including:
@@ -411,6 +460,35 @@ Calculate business time accounting for country-specific weekends and holidays. S
 - Business logic for scheduling
 - Delivery date calculations
 - Checks PUBLIC holidays only (government closures)
+
+### resolve_relative_date
+**📅 NEW in v1.5.3:** Convert relative date expressions to actual dates. Uses simple, documented rules - no intent inference. Perfect for resolving ambiguous expressions like "next Monday" or "in 3 days".
+
+**Inputs:**
+- `expression` (string, required): Relative date expression
+  - Basic: "today", "tomorrow", "yesterday"
+  - Weekdays: "next Monday", "last Friday" (any weekday)
+  - Offsets: "in 3 days", "5 days ago"
+  - Weeks: "next week", "last week"
+- `reference_datetime` (string, optional): Reference datetime (ISO 8601). Defaults to now.
+- `use_elastic_tomorrow` (boolean, optional): Enable "Elastic Tomorrow" for night coders (default: false)
+- `elastic_threshold_hour` (number, optional): Elastic boundary hour (default: 6 AM)
+
+**Rules:**
+- "next Monday" on Monday = next week's Monday (minimum 1 day)
+- "last Friday" on Friday = last week's Friday (minimum 1 day)
+- "Elastic Tomorrow": If reference time is before threshold (default 6 AM), "tomorrow" = today's calendar date (the day after you sleep)
+
+**Use cases:**
+- Resolve "next Monday" to actual date
+- Convert "in 5 days" to specific date
+- Handle "Elastic Tomorrow" for developers coding late at night
+- Parse relative expressions with clear, documented rules
+
+**Example queries:**
+- "What date is next Monday?"
+- "When is 3 days from now?"
+- "Resolve 'last Friday' to a date"
 
 ## Example Usage
 
