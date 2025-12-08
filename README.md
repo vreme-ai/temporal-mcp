@@ -11,25 +11,16 @@ MCP server providing temporal intelligence - timezone conversions, 31 cultural c
 ## ✨ What's New in v1.6.1
 
 ⚡ **Personalized Temporal Awareness** - Claude adapts to YOUR cognitive rhythms!
+- **3 NEW MCP Tools** - `get_user_cognitive_state`, `analyze_work_patterns`, `predict_user_availability`
 - **Local-only behavior tracking** - Analyzes your activity bursts to understand your cognitive rhythms
 - **Smart context switching** - 30-minute gap detection for natural work session boundaries
-- **Sleep pattern recognition** - Detects 2.5+ hour gaps during late night (10pm-6am) to understand your sleep/wake cycle
+- **Sleep pattern recognition** - Detects 2.5+ hour gaps during late night (10pm-6am)
 - **Lunch break detection** - Recognizes 30+ min breaks during lunch hours (11am-2pm)
 - **"Tomorrow" intelligence** - Work til 3am, say "tomorrow", sleep 3+ hrs → Claude knows you mean after you wake up
-- **Privacy-first** - All stored locally in `~/.vreme/` (no backend, no tracking, no surveillance)
 - **Dual context files** - `temporal-context.json` (current time) + `behavior-context.json` (your patterns)
-- **3 NEW MCP Tools** - `get_user_cognitive_state`, `analyze_work_patterns`, `predict_user_availability`
-- **For Claude** - Tools help me understand YOUR work style and adapt my suggestions accordingly
+- **Privacy-first** - All stored locally in `~/.vreme/` (no backend, no tracking, no surveillance)
 
-## What's New in v1.5.0
-
-🎉 **Simplified Holiday Service** - Massive upgrade with category filtering!
-- **247+ countries** with comprehensive holiday data (US, CN, IN, GB, JP, DE, FR, BR, MX, RU, and 237+ more!)
-- **Category filtering** - PUBLIC (govt closures), BANK, SCHOOL, OPTIONAL, GOVERNMENT
-- **5 financial markets** - NYSE, NSE India, Brazil B3, ECB, ICE Futures Europe
-- **Trading holiday calendars** - Know when markets are closed
-- **Business day intelligence** - Smart checks for PUBLIC holidays + weekends
-- **Powered by python-holidays v0.86+** - Battle-tested, community-maintained database
+📝 **[Full Version History & Changelog](CHANGELOG.md)**
 
 ## Features
 

@@ -1595,7 +1595,7 @@ async function main() {
   console.error("Available tools (20 total):");
   console.error("  🧠 get_temporal_context - AUTO-CALL at conversation start for temporal awareness");
   console.error("  ⏰ get_current_time - Use for 'What time is it?' queries");
-  console.error("  🧠 Personalized Awareness (NEW in v1.6.0):");
+  console.error("  🧠 Personalized Awareness (NEW in v1.6.1):");
   console.error("     - get_user_cognitive_state - Current session + cognitive state");
   console.error("     - analyze_work_patterns - Historical work patterns & peak hours");
   console.error("     - predict_user_availability - When user will likely return");
