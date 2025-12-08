@@ -78,6 +78,7 @@ MCP server providing temporal intelligence - timezone conversions, 31 cultural c
 
 **Western & Technical Calendars:**
 - **Mayan** - Long count calendar
+- **Roman** - Ancient Roman calendar with Kalends, Nones, and Ides dating system
 - **French Revolutionary** - French Republican calendar
 - **Revised Julian** - Modified Julian calendar
 - **Discordian** - Discordian calendar
@@ -236,7 +237,7 @@ Add to your Cline configuration following their MCP setup guide.
 ### query_time
 Query temporal information using natural language. Returns comprehensive temporal context including:
 - Current time and timezone
-- 30 cultural calendars covering 5+ billion people worldwide
+- 31 cultural calendars covering 5+ billion people worldwide
 - Astronomical events (sunrise, sunset, moon phases)
 - Religious fasting status and work restrictions
 - Activity appropriateness for calls, meetings, work

@@ -2,6 +2,16 @@
 
 All notable changes to the Vreme Temporal MCP Server are documented here.
 
+## [1.6.2] - 2024-12-08
+
+### Added
+- **Roman Calendar Support** - Ancient Roman calendar with Kalends, Nones, and Ides dating system
+  - AUC (Ab Urbe Condita) year notation
+  - Roman festivals and observances (Saturnalia, Lupercalia, etc.)
+  - Famous dates (Ides of March assassination)
+  - Proper Roman date expressions
+- **Enhanced Cultural Calendar Coverage** - Now supports 31 calendar systems (was 30)
+
 ## [1.6.1] - 2024-12-08
 
 ### Added
@@ -85,7 +95,7 @@ All notable changes to the Vreme Temporal MCP Server are documented here.
 
 ### Core Features
 - 200+ timezone support with DST handling
-- 31 cultural calendars (Hebrew, Islamic, Chinese, Hindu, Persian, Buddhist, etc.)
+- 31 cultural calendars (Hebrew, Islamic, Chinese, Hindu, Persian, Buddhist, Roman, etc.)
 - Islamic prayer times with Qibla direction
 - Astronomical calculations (sunrise, sunset, moon phases)
 - Activity appropriateness detection
