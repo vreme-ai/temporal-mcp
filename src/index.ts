@@ -11,6 +11,7 @@ import { z } from "zod";
 import { ActivityBurst } from "./temporal-context.js";
 import { TemporalContextManager } from "./temporal-context-manager.js";
 import { TemporalContextGenerator } from "./temporal-context-generator.js";
+import { BehaviorContextManager } from "./behavior-context-manager.js";
 
 // API Configuration
 const VREME_API_URL = process.env.VREME_API_URL || "https://api.vreme.ai";
@@ -1187,6 +1188,312 @@ server.registerTool("resolve_relative_date", {
 });
 
 // ============================================================
+// BEHAVIOR CONTEXT TOOLS (Personalized Awareness)
+// ============================================================
+
+server.registerTool("get_user_cognitive_state", {
+  description: "🧠 USER COGNITIVE STATE: Understand the user's current work session and cognitive state. Returns: current session info (how long they've been working, interaction count), whether this is a typical work time for them based on historical patterns, and recommendations for task complexity. Use this to adapt your suggestions - deep work sessions are good for complex tasks, short sessions better for quick wins.",
+  inputSchema: z.object({})
+}, async () => {
+  updateActivityTracking();
+  try {
+    const behaviorContext = BehaviorContextManager.loadBehaviorContext();
+    const currentSession = behaviorContext.current_session;
+    const systemTimezone = getSystemTimezone();
+    const now = new Date();
+
+    if (!currentSession) {
+      return {
+        content: [{
+          type: "text",
+          text: JSON.stringify({
+            status: "no_active_session",
+            message: "User has not started a session yet or had a long gap (30+ minutes)",
+            cognitive_boundary_detected: true
+          }, null, 2)
+        }]
+      };
+    }
+
+    // Calculate session stats
+    const sessionStart = new Date(currentSession.burst_start);
+    const sessionMinutes = (now.getTime() - sessionStart.getTime()) / (1000 * 60);
+
+    // Analyze historical patterns for this hour
+    const currentHour = parseInt(now.toLocaleString('en-US', {
+      hour: 'numeric',
+      hour12: false,
+      timeZone: systemTimezone
+    }));
+
+    const historicalSessionsAtThisHour = behaviorContext.completed_sessions.filter(s => {
+      const sHour = parseInt(new Date(s.burst_start).toLocaleString('en-US', {
+        hour: 'numeric',
+        hour12: false,
+        timeZone: systemTimezone
+      }));
+      return Math.abs(sHour - currentHour) <= 1; // Within 1 hour
+    });
+
+    const avgSessionLength = historicalSessionsAtThisHour.length > 0
+      ? historicalSessionsAtThisHour.reduce((sum, s) => sum + s.burst_length_mins, 0) / historicalSessionsAtThisHour.length
+      : null;
+
+    const isTypicalWorkTime = historicalSessionsAtThisHour.length >= 3;
+
+    // Session phase analysis
+    let sessionPhase = "warming_up";
+    if (sessionMinutes < 15) sessionPhase = "warming_up";
+    else if (sessionMinutes < 45) sessionPhase = "focused";
+    else if (sessionMinutes < 90) sessionPhase = "deep_work";
+    else sessionPhase = "extended_session";
+
+    return {
+      content: [{
+        type: "text",
+        text: JSON.stringify({
+          current_session: {
+            duration_minutes: Math.round(sessionMinutes),
+            interaction_count: currentSession.interaction_count,
+            session_phase: sessionPhase,
+            started_at: currentSession.burst_start
+          },
+          patterns: {
+            is_typical_work_time: isTypicalWorkTime,
+            historical_sessions_at_this_hour: historicalSessionsAtThisHour.length,
+            average_session_length_minutes: avgSessionLength ? Math.round(avgSessionLength) : null
+          },
+          recommendations: {
+            good_for_complex_tasks: sessionPhase === "deep_work" || sessionPhase === "focused",
+            good_for_quick_wins: sessionPhase === "warming_up",
+            consider_break_soon: sessionMinutes > 90,
+            confidence: isTypicalWorkTime ? "high" : "low"
+          }
+        }, null, 2)
+      }]
+    };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return {
+      content: [{ type: "text", text: JSON.stringify({ error: msg }) }],
+      isError: true
+    };
+  }
+});
+
+server.registerTool("analyze_work_patterns", {
+  description: "📊 WORK PATTERN ANALYSIS: Analyze the user's historical work patterns to understand their typical schedule, peak productivity hours, and session characteristics. Returns statistics about: typical work hours, average session lengths, common break times, sleep/wake patterns. Use this to understand when the user is most productive and adapt your interactions accordingly.",
+  inputSchema: z.object({
+    lookback_days: z.number().optional().describe("How many days back to analyze (default: 7)")
+  })
+}, async ({ lookback_days = 7 }) => {
+  updateActivityTracking();
+  try {
+    const behaviorContext = BehaviorContextManager.loadBehaviorContext();
+    const systemTimezone = getSystemTimezone();
+    const now = new Date();
+    const cutoffDate = new Date(now.getTime() - (lookback_days * 24 * 60 * 60 * 1000));
+
+    // Filter recent sessions
+    const recentSessions = behaviorContext.completed_sessions.filter(s =>
+      new Date(s.burst_start) > cutoffDate
+    );
+
+    if (recentSessions.length === 0) {
+      return {
+        content: [{
+          type: "text",
+          text: JSON.stringify({
+            message: "Not enough historical data yet",
+            sessions_analyzed: 0
+          }, null, 2)
+        }]
+      };
+    }
+
+    // Calculate hourly distribution
+    const hourlyActivity: Record<number, number> = {};
+    for (let h = 0; h < 24; h++) hourlyActivity[h] = 0;
+
+    recentSessions.forEach(s => {
+      const hour = parseInt(new Date(s.burst_start).toLocaleString('en-US', {
+        hour: 'numeric',
+        hour12: false,
+        timeZone: systemTimezone
+      }));
+      hourlyActivity[hour]++;
+    });
+
+    // Find peak hours (top 3)
+    const peakHours = Object.entries(hourlyActivity)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([hour, count]) => ({ hour: parseInt(hour), session_count: count }));
+
+    // Session length stats
+    const sessionLengths = recentSessions.map(s => s.burst_length_mins);
+    const avgSessionLength = sessionLengths.reduce((a, b) => a + b, 0) / sessionLengths.length;
+    const maxSessionLength = Math.max(...sessionLengths);
+
+    // Sleep pattern analysis
+    const sleepGaps = behaviorContext.estimated_sleep_gaps.filter(g =>
+      new Date(g.gap_start) > cutoffDate
+    );
+
+    const avgSleepGap = sleepGaps.length > 0
+      ? sleepGaps.reduce((sum, g) => sum + g.gap_length_mins, 0) / sleepGaps.length
+      : null;
+
+    // Lunch pattern analysis
+    const lunchGaps = behaviorContext.estimated_lunch_gaps.filter(g =>
+      new Date(g.gap_start) > cutoffDate
+    );
+
+    return {
+      content: [{
+        type: "text",
+        text: JSON.stringify({
+          analysis_period: {
+            lookback_days,
+            sessions_analyzed: recentSessions.length,
+            sleep_gaps_detected: sleepGaps.length,
+            lunch_breaks_detected: lunchGaps.length
+          },
+          work_schedule: {
+            peak_hours: peakHours,
+            hourly_distribution: hourlyActivity
+          },
+          session_characteristics: {
+            average_length_minutes: Math.round(avgSessionLength),
+            longest_session_minutes: Math.round(maxSessionLength),
+            total_sessions: recentSessions.length
+          },
+          break_patterns: {
+            average_sleep_gap_hours: avgSleepGap ? Math.round(avgSleepGap / 60 * 10) / 10 : null,
+            sleep_gaps_detected: sleepGaps.length,
+            lunch_breaks_detected: lunchGaps.length,
+            typical_lunch_hours: lunchGaps.length > 0
+              ? [...new Set(lunchGaps.map(g => g.detected_at_hour))].sort()
+              : []
+          }
+        }, null, 2)
+      }]
+    };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return {
+      content: [{ type: "text", text: JSON.stringify({ error: msg }) }],
+      isError: true
+    };
+  }
+});
+
+server.registerTool("predict_user_availability", {
+  description: "🔮 AVAILABILITY PREDICTION: Predict when the user will likely be back based on current gap and historical patterns. If user is away, analyzes the gap to determine if it's likely a lunch break, sleep, or just a short break. Returns probability estimates and expected return time. Use this to decide whether to provide immediate responses or save complex suggestions for when they return.",
+  inputSchema: z.object({})
+}, async () => {
+  updateActivityTracking();
+  try {
+    const globalContext = TemporalContextManager.loadGlobalContext();
+    const behaviorContext = BehaviorContextManager.loadBehaviorContext();
+    const systemTimezone = getSystemTimezone();
+    const now = new Date();
+    const lastActivity = new Date(globalContext.last_global_activity);
+    const gapMinutes = (now.getTime() - lastActivity.getTime()) / (1000 * 60);
+
+    // If currently in a session (gap < threshold)
+    if (gapMinutes < behaviorContext.context_switch_threshold_minutes) {
+      return {
+        content: [{
+          type: "text",
+          text: JSON.stringify({
+            status: "currently_active",
+            gap_minutes: Math.round(gapMinutes),
+            message: "User is currently in an active session"
+          }, null, 2)
+        }]
+      };
+    }
+
+    // Analyze gap type
+    const lastHour = parseInt(lastActivity.toLocaleString('en-US', {
+      hour: 'numeric',
+      hour12: false,
+      timeZone: systemTimezone
+    }));
+
+    const currentHour = parseInt(now.toLocaleString('en-US', {
+      hour: 'numeric',
+      hour12: false,
+      timeZone: systemTimezone
+    }));
+
+    let gapType = "short_break";
+    let estimatedReturnMinutes = 15;
+
+    // Sleep detection
+    const isNightHours = lastHour >= 22 || lastHour < 6;
+    if (gapMinutes >= 150 && isNightHours) {
+      gapType = "sleep";
+      estimatedReturnMinutes = 480; // 8 hours
+    }
+    // Lunch detection
+    else if (gapMinutes >= 30 && lastHour >= 11 && lastHour < 14) {
+      gapType = "lunch_break";
+      estimatedReturnMinutes = 60;
+    }
+    // Extended break
+    else if (gapMinutes >= 60) {
+      gapType = "extended_break";
+      estimatedReturnMinutes = 120;
+    }
+
+    // Check historical patterns for this time
+    const historicalReturns = behaviorContext.completed_sessions.filter(s => {
+      const sHour = parseInt(new Date(s.burst_start).toLocaleString('en-US', {
+        hour: 'numeric',
+        hour12: false,
+        timeZone: systemTimezone
+      }));
+      return Math.abs(sHour - currentHour) <= 1;
+    });
+
+    const estimatedReturn = new Date(now.getTime() + (estimatedReturnMinutes * 60 * 1000));
+
+    return {
+      content: [{
+        type: "text",
+        text: JSON.stringify({
+          status: "user_away",
+          gap_analysis: {
+            gap_minutes: Math.round(gapMinutes),
+            gap_type: gapType,
+            last_activity_hour: lastHour,
+            current_hour: currentHour
+          },
+          prediction: {
+            estimated_return_time: estimatedReturn.toISOString(),
+            estimated_return_in_minutes: estimatedReturnMinutes,
+            confidence: historicalReturns.length >= 3 ? "high" : "low",
+            historical_sessions_at_this_hour: historicalReturns.length
+          },
+          recommendation: {
+            wait_for_return: gapType === "sleep" || gapType === "extended_break",
+            can_respond_now: gapType === "short_break" || gapType === "lunch_break"
+          }
+        }, null, 2)
+      }]
+    };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return {
+      content: [{ type: "text", text: JSON.stringify({ error: msg }) }],
+      isError: true
+    };
+  }
+});
+
+// ============================================================
 // MCP RESOURCE SUPPORT (for temporal context auto-injection)
 // ============================================================
 
@@ -1282,19 +1589,25 @@ server.registerResource(
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("=== VREME MCP Server v1.5.5 ===");
+  console.error("=== VREME MCP Server v1.6.0 ===");
   console.error("Vreme Time Service MCP Server running");
   console.error(`API URL: ${VREME_API_URL}`);
-  console.error("Available tools (17 total):");
+  console.error("Available tools (20 total):");
   console.error("  🧠 get_temporal_context - AUTO-CALL at conversation start for temporal awareness");
-  console.error("  - get_current_time - Use for 'What time is it?' queries");
-  console.error("  - query_time, query_prayer_times, check_activity_appropriateness");
-  console.error("  - analyze_temporal_context, compare_dates, calculate_business_time");
-  console.error("  - list_holiday_countries, get_country_holidays, check_holiday, check_business_day");
-  console.error("  - list_financial_markets_holidays, get_market_holidays");
-  console.error("  - validate_date, add_business_days_detailed");
-  console.error("  - resolve_relative_date");
-  console.error("  - All tools now pass system timezone automatically");
+  console.error("  ⏰ get_current_time - Use for 'What time is it?' queries");
+  console.error("  🧠 Personalized Awareness (NEW in v1.6.0):");
+  console.error("     - get_user_cognitive_state - Current session + cognitive state");
+  console.error("     - analyze_work_patterns - Historical work patterns & peak hours");
+  console.error("     - predict_user_availability - When user will likely return");
+  console.error("  📅 Temporal Tools:");
+  console.error("     - query_time, query_prayer_times, check_activity_appropriateness");
+  console.error("     - analyze_temporal_context, compare_dates, calculate_business_time");
+  console.error("  🎉 Holiday Tools:");
+  console.error("     - list_holiday_countries, get_country_holidays, check_holiday, check_business_day");
+  console.error("     - list_financial_markets_holidays, get_market_holidays");
+  console.error("  🔧 Utility Tools:");
+  console.error("     - validate_date, add_business_days_detailed, resolve_relative_date");
+  console.error("  Privacy-first: All behavior data stored locally in ~/.vreme/");
 }
 
 main().catch((error) => {

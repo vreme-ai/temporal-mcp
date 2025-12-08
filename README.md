@@ -8,9 +8,9 @@
 
 MCP server providing temporal intelligence - timezone conversions, 31 cultural calendars, astronomical events, prayer times, **247+ countries' holiday data**, **5 financial markets**, business time calculations, and **personalized temporal awareness** that adapts to YOUR cognitive rhythms.
 
-## ✨ What's New in v1.5.6
+## ✨ What's New in v1.6.0
 
-⚡ **Personalized Temporal Awareness** - Claude adapts to YOUR work patterns!
+⚡ **Personalized Temporal Awareness** - Claude adapts to YOUR cognitive rhythms!
 - **Local-only behavior tracking** - Analyzes your activity bursts to understand your cognitive rhythms
 - **Smart context switching** - 30-minute gap detection for natural work session boundaries
 - **Sleep pattern recognition** - Detects 2.5+ hour gaps during late night (10pm-6am) to understand your sleep/wake cycle
@@ -18,6 +18,8 @@ MCP server providing temporal intelligence - timezone conversions, 31 cultural c
 - **"Tomorrow" intelligence** - Work til 3am, say "tomorrow", sleep 3+ hrs → Claude knows you mean after you wake up
 - **Privacy-first** - All stored locally in `~/.vreme/` (no backend, no tracking, no surveillance)
 - **Dual context files** - `temporal-context.json` (current time) + `behavior-context.json` (your patterns)
+- **3 NEW MCP Tools** - `get_user_cognitive_state`, `analyze_work_patterns`, `predict_user_availability`
+- **For Claude** - Tools help me understand YOUR work style and adapt my suggestions accordingly
 
 ## What's New in v1.5.0
 
