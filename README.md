@@ -6,9 +6,20 @@
 
 # Vreme Temporal MCP Server
 
-MCP server providing temporal intelligence - timezone conversions, 31 cultural calendars, astronomical events, prayer times, **247+ countries' holiday data**, **5 financial markets**, business time calculations, and time-sensitive context.
+MCP server providing temporal intelligence - timezone conversions, 31 cultural calendars, astronomical events, prayer times, **247+ countries' holiday data**, **5 financial markets**, business time calculations, and **personalized temporal awareness** that adapts to YOUR cognitive rhythms.
 
-## ✨ What's New in v1.5.0
+## ✨ What's New in v1.5.6
+
+⚡ **Personalized Temporal Awareness** - Claude adapts to YOUR work patterns!
+- **Local-only behavior tracking** - Analyzes your activity bursts to understand your cognitive rhythms
+- **Smart context switching** - 30-minute gap detection for natural work session boundaries
+- **Sleep pattern recognition** - Detects 2.5+ hour gaps during late night (10pm-6am) to understand your sleep/wake cycle
+- **Lunch break detection** - Recognizes 30+ min breaks during lunch hours (11am-2pm)
+- **"Tomorrow" intelligence** - Work til 3am, say "tomorrow", sleep 3+ hrs → Claude knows you mean after you wake up
+- **Privacy-first** - All stored locally in `~/.vreme/` (no backend, no tracking, no surveillance)
+- **Dual context files** - `temporal-context.json` (current time) + `behavior-context.json` (your patterns)
+
+## What's New in v1.5.0
 
 🎉 **Simplified Holiday Service** - Massive upgrade with category filtering!
 - **247+ countries** with comprehensive holiday data (US, CN, IN, GB, JP, DE, FR, BR, MX, RU, and 237+ more!)
@@ -31,6 +42,7 @@ MCP server providing temporal intelligence - timezone conversions, 31 cultural c
 - **Powered by python-holidays v0.86+** - Community-maintained, accurate data
 
 ### ⏰ Temporal Intelligence
+- **Personalized Awareness** - Adapts to YOUR cognitive rhythms (sleep/wake, work bursts, lunch breaks)
 - **Natural language queries** - "What time is it in Tokyo?", "Is it Ramadan?", "Can I call Berlin now?"
 - **200+ timezones** - Complete pytz timezone database with DST handling
 - **Astronomical events** - Sunrise, sunset, moon phases, twilight times
@@ -40,6 +52,8 @@ MCP server providing temporal intelligence - timezone conversions, 31 cultural c
 - **Temporal Density Scoring** - Quantify how "significant" any date is culturally (0-100)
 - **Business Time Intelligence** - Calculate business days/hours accounting for country-specific weekends and holidays
 - **Historical Temporal Context** - Get comprehensive temporal snapshot for any historical date
+- **Context Switch Detection** - 30-minute gaps automatically detect natural cognitive boundaries
+- **Privacy-First** - All behavioral data stored locally in `~/.vreme/` (no backend)
 
 ### 📅 Cultural Calendars (31 Systems)
 
