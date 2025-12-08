@@ -11,11 +11,13 @@ MCP server providing temporal intelligence - timezone conversions, 32 cultural c
 ## ✨ What's New in v1.5.5
 
 🧠 **Temporal Context & Activity Tracking** - Give Claude a sense of time!
-- **`get_temporal_context` tool** - Provides Claude with real-time temporal awareness
-- **Activity tracking** - Track conversation bursts and context switches across sessions
-- **Persistent state** - Remembers last activity timestamps globally in `~/.vreme/temporal-context.json`
-- **Cognitive indicators** - Late night, early morning, and temporal boundary detection
-- **Temporal grounding** - Helps Claude understand "now" and passage of time
+- **`get_current_time` tool** - **Never again will an LLM not know what time it is for the user**
+- **`get_temporal_context` tool** - Real-time temporal awareness with activity tracking
+- **Cross-session activity tracking** - Knows when you've been away from AI activity (any client)
+- **"Tomorrow" intelligence** - Work until 3am, say "let's finish tomorrow", sleep 3+ hours → Claude knows "tomorrow" means after you wake up
+- **Cognitive boundaries** - Detects sleep/wake cycles, context switches (1hr+ gaps), late night sessions
+- **Persistent state** - Tracks global activity in `~/.vreme/temporal-context.json` across all MCP clients
+- **Temporal grounding** - Time of day, day of week, relative time awareness
 
 ## ✨ What's New in v1.5.3
 
