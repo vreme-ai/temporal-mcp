@@ -2,6 +2,135 @@
 
 All notable changes to the Vreme Temporal MCP Server are documented here.
 
+## [1.7.0 + Phase A] - 2024-12-09
+
+### 🚀 TEMPORAL OS EXTENSIONS - Phase A: Clock & Calendar Completion
+
+**9 NEW MCP TOOLS** - Mathematical foundation for temporal reasoning
+
+### Added
+
+#### Time Scales & Conversions (2 NEW tools)
+- **`convert_time_scale`** - Convert between time scales
+  - Supports: UNIX_SECONDS, UNIX_MILLIS, UTC_ISO, LOCAL_ISO
+  - Planned: TAI, GPS time scales
+  - Explicit timezone handling
+  - Batch conversion support
+  - Use cases: "Convert Unix timestamp to UTC", "What is 1733700000 in New York time?"
+
+- **`list_time_scales`** - List supported time scales
+  - Shows all available scales with descriptions and examples
+  - Helps discover conversion capabilities
+
+#### Interval Algebra (2 NEW tools)
+- **`interval_operations`** - Set operations on time intervals
+  - Operations: UNION (merge), INTERSECTION (overlap), DIFFERENCE (subtract), GAPS (find gaps)
+  - Handles overlapping and adjacent intervals
+  - Normalized output
+  - Use cases: "Find overlapping time windows", "Merge available time slots", "Find gaps in schedule"
+
+- **`expand_recurrence`** - RRULE recurrence pattern expansion
+  - Full RFC 5545 RRULE syntax support
+  - Expand to concrete occurrences within window
+  - Safety limit: max 1000 occurrences
+  - Use cases: "Find all Mondays in January", "When does this meeting repeat?"
+
+#### Multi-Calendar System (2 NEW tools)
+- **`align_calendars`** - Multi-calendar alignment
+  - Show single instant across multiple calendar systems
+  - Supports: Gregorian, Unix, ISO Week, Ordinal (more planned)
+  - Use cases: "What is Dec 9, 2025 in Islamic calendar?", "Show this date in Hebrew and Chinese"
+
+- **`find_partial_dates`** - Partial date matching
+  - Find all dates matching partial specification
+  - Search by year, month, day constraints
+  - Use cases: "Find all September 1st dates", "When is first Monday of September?"
+
+#### Fuzzy/Uncertain Time (3 NEW tools)
+- **`create_fuzzy_time_circa`** - Fuzzy time from circa expressions
+  - Represent uncertainty explicitly with window + confidence
+  - Precision levels: year, month, day
+  - Use cases: "circa 1990", historical dates, approximate times
+
+- **`create_fuzzy_time_window`** - Fuzzy time from explicit window
+  - Custom confidence scoring
+  - Use cases: Uncertain future events, flexible scheduling, time estimates
+
+- **`intersect_fuzzy_times`** - Intersection of two fuzzy times
+  - Find overlap between uncertain time ranges
+  - Combined confidence scoring
+  - Use cases: "When do these uncertain events both happen?", "Find overlap"
+
+### Backend APIs (Python Service)
+
+**9 NEW ENDPOINTS** at `/v1/time/*` and `/v1/calendars/*`:
+- `POST /v1/time/scales/convert` - Time scale conversions
+- `GET /v1/time/scales/list` - List time scales
+- `POST /v1/time/intervals/ops` - Interval operations
+- `POST /v1/time/recurrence/expand` - RRULE expansion
+- `POST /v1/calendars/alignment` - Calendar alignment
+- `POST /v1/calendars/partial_dates` - Partial date search
+- `POST /v1/time/fuzzy/from_circa` - Circa fuzzy time
+- `POST /v1/time/fuzzy/from_window` - Window fuzzy time
+- `POST /v1/time/fuzzy/intersect` - Fuzzy time intersection
+
+### Core Engines (Python Service)
+
+**5 NEW ENGINE MODULES** (~1,815 lines):
+- `time_scales_converter.py` (329 lines) - TimeScalesConverter class
+- `interval_algebra.py` (386 lines) - IntervalAlgebra + RecurrenceExpander classes
+- `multi_calendar_alignment.py` (274 lines) - MultiCalendarAlignment class
+- `fuzzy_time.py` (471 lines) - FuzzyTime + FuzzyTimeBuilder + FuzzyTimeOperations classes
+- `phase_a_routes.py` (355 lines) - Route registration for Phase A
+
+### Architecture
+
+- **Deterministic APIs** - All endpoints return versioned responses with input_hash
+- **Singleton pattern** - All engines use efficient singleton instances
+- **Modular route registration** - `phase_a_routes.py` for clean integration
+- **RFC 5545 compliance** - RRULE implementation follows standard
+- **Safety limits** - Max iterations on searches and expansions
+
+### Changed
+
+- **Total MCP tools:** 40 (was 31) → **+9 new tools**
+- **Python service:** Added Phase A integration to main.py
+- **MCP server:** Updated startup message with Phase A tools
+
+### Documentation
+
+- Updated Python service README with Phase A features
+- Updated MCP CHANGELOG with comprehensive Phase A entry
+- All tools include detailed descriptions and use cases
+
+### Impact
+
+**Before Phase A:**
+- Time-aware with calendar intelligence
+- Business day calculations
+- Holiday awareness
+
+**After Phase A:**
+- ✨ Mathematical foundation for temporal reasoning
+- ✨ Set theory over time intervals
+- ✨ Scale-agnostic time representation
+- ✨ Recurrence pattern evaluation
+- ✨ Multi-calendar alignment
+- ✨ Explicit uncertainty representation
+
+This establishes Vreme as having a **complete mathematical foundation** for temporal reasoning,
+transforming it from "time-aware" to a **Temporal Operating System**.
+
+## [1.6.2] - 2024-12-08
+
+### Added
+- **Roman Calendar Support** - Ancient Roman calendar with Kalends, Nones, and Ides dating system
+  - AUC (Ab Urbe Condita) year notation
+  - Roman festivals and observances (Saturnalia, Lupercalia, etc.)
+  - Famous dates (Ides of March assassination)
+  - Proper Roman date expressions
+- **Enhanced Cultural Calendar Coverage** - Now supports 31 calendar systems (was 30)
+
 ## [1.6.1] - 2024-12-08
 
 ### Added
@@ -85,7 +214,7 @@ All notable changes to the Vreme Temporal MCP Server are documented here.
 
 ### Core Features
 - 200+ timezone support with DST handling
-- 31 cultural calendars (Hebrew, Islamic, Chinese, Hindu, Persian, Buddhist, etc.)
+- 31 cultural calendars (Hebrew, Islamic, Chinese, Hindu, Persian, Buddhist, Roman, etc.)
 - Islamic prayer times with Qibla direction
 - Astronomical calculations (sunrise, sunset, moon phases)
 - Activity appropriateness detection
