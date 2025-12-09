@@ -1494,6 +1494,521 @@ server.registerTool("predict_user_availability", {
 });
 
 // ============================================================
+// v1.7.0 TEMPORAL CONTEXT SYSTEM
+// ============================================================
+
+server.registerTool("execute_time_arithmetic", {
+  description: "⏰ TIME ARITHMETIC: Execute precise date/time math with business rules. Supports operations: add, subtract, set_time, set_date. Handles business_days with regional holiday calendars. Returns step-by-step execution trace with deterministic hashing.",
+  inputSchema: z.object({
+    starting_time: z.string().describe("ISO 8601 datetime string (e.g., '2024-12-09T15:30:00-05:00')"),
+    operations: z.array(z.object({
+      op: z.enum(["add", "subtract", "set_time", "set_date"]).describe("Operation type"),
+      unit: z.enum(["seconds", "minutes", "hours", "days", "business_days", "weeks", "months", "years"]).optional().describe("Time unit (required for add/subtract)"),
+      value: z.number().optional().describe("Amount to add/subtract"),
+      time: z.string().optional().describe("Time in HH:MM format for set_time"),
+      date: z.string().optional().describe("Date in YYYY-MM-DD for set_date")
+    })).describe("Array of operations to execute in sequence"),
+    timezone: z.string().optional().describe("IANA timezone (e.g., 'America/New_York')"),
+    region_for_holidays: z.string().optional().describe("ISO country code for business day holidays (e.g., 'US')")
+  })
+}, async ({ starting_time, operations, timezone, region_for_holidays }) => {
+  try {
+    const params = new URLSearchParams();
+    if (timezone) params.append("timezone", timezone);
+    if (region_for_holidays) params.append("region_for_holidays", region_for_holidays);
+
+    const response = await fetch(`${VREME_API_URL}/v1/time/arithmetic?${params}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ starting_time, operations })
+    });
+    const result = await response.json();
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
+  }
+});
+
+server.registerTool("resolve_temporal_phrase", {
+  description: "🗣️ TEMPORAL PHRASE RESOLVER: Convert natural language phrases like 'tomorrow evening', 'end of week', 'early next week' to concrete time windows. Returns canonical window with start/end times, confidence score (0-1), and alternative interpretations. Context-aware for planning vs casual conversation.",
+  inputSchema: z.object({
+    phrase: z.string().describe("Temporal phrase to resolve (e.g., 'tomorrow evening', 'end of week')"),
+    reference_time: z.string().optional().describe("ISO 8601 reference datetime (defaults to now)"),
+    timezone: z.string().optional().describe("IANA timezone"),
+    context: z.enum(["planning", "scheduling", "casual"]).optional().describe("Context for interpretation")
+  })
+}, async ({ phrase, reference_time, timezone, context }) => {
+  try {
+    const params = new URLSearchParams();
+    if (reference_time) params.append("reference_time", reference_time);
+    if (timezone) params.append("timezone", timezone);
+    if (context) params.append("context", context);
+
+    const response = await fetch(`${VREME_API_URL}/v1/time/phrases/resolve?${params}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ phrase })
+    });
+    const result = await response.json();
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
+  }
+});
+
+server.registerTool("compare_temporal_phrases", {
+  description: "📊 PHRASE COMPARATOR: Compare two temporal phrases to analyze their relationship. Returns time difference, overlap analysis, which is earlier/later, and human-readable comparison. Use for questions like 'Is end of week before early next week?'",
+  inputSchema: z.object({
+    phrase1: z.string().describe("First temporal phrase"),
+    phrase2: z.string().describe("Second temporal phrase"),
+    reference_time: z.string().optional().describe("ISO 8601 reference datetime"),
+    timezone: z.string().optional().describe("IANA timezone")
+  })
+}, async ({ phrase1, phrase2, reference_time, timezone }) => {
+  try {
+    const params = new URLSearchParams();
+    if (reference_time) params.append("reference_time", reference_time);
+    if (timezone) params.append("timezone", timezone);
+
+    const response = await fetch(`${VREME_API_URL}/v1/time/phrases/compare?${params}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ phrase1, phrase2 })
+    });
+    const result = await response.json();
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
+  }
+});
+
+server.registerTool("export_temporal_context_snapshot", {
+  description: "📸 TEMPORAL CONTEXT SNAPSHOT: Export portable temporal context for Multi-LLM systems. Returns TemporalContextSnapshotV1 schema including current time, calendars, upcoming events, rhythm fingerprint, and optional artifacts. Use for sharing context between Claude, GPT-4, Gemini.",
+  inputSchema: z.object({
+    window_days: z.number().optional().describe("Days to look ahead (default: 3)"),
+    include_artifacts: z.array(z.string()).optional().describe("Artifact IDs to include"),
+    timezone: z.string().optional().describe("IANA timezone")
+  })
+}, async ({ window_days, include_artifacts, timezone }) => {
+  try {
+    const params = new URLSearchParams();
+    if (window_days) params.append("window_days", window_days.toString());
+    if (timezone) params.append("timezone", timezone);
+    if (include_artifacts) params.append("include_artifacts", include_artifacts.join(","));
+
+    const response = await fetch(`${VREME_API_URL}/v1/context/snapshot/export?${params}`);
+    const result = await response.json();
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
+  }
+});
+
+server.registerTool("generate_temporal_prompt_prefix", {
+  description: "📝 PROMPT PREFIX GENERATOR: Convert temporal context snapshot to concise LLM-ready prompt prefix. Configurable max lines (default: 20). Optimized for system prompts. Use after export_temporal_context_snapshot.",
+  inputSchema: z.object({
+    snapshot: z.record(z.string(), z.any()).describe("TemporalContextSnapshotV1 from export_temporal_context_snapshot"),
+    max_lines: z.number().optional().describe("Maximum lines in output (default: 20)")
+  })
+}, async ({ snapshot, max_lines }) => {
+  try {
+    const response = await fetch(`${VREME_API_URL}/v1/context/prompt_prefix`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ snapshot, max_lines })
+    });
+    const result = await response.json();
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
+  }
+});
+
+server.registerTool("check_good_moment_for_activity", {
+  description: "✅ ACTIVITY TIMING: Check if now is good moment for activity. Activities: deep_work, financial_decision, hard_feedback, creative_play, exercise. Returns yes/no, score (0-1), reasons, and suggested alternative time. Considers time of day, bedtime proximity, upcoming events, historical patterns.",
+  inputSchema: z.object({
+    activity: z.enum(["deep_work", "financial_decision", "hard_feedback", "creative_play", "exercise"]).describe("Activity type"),
+    reference_time: z.string().optional().describe("ISO 8601 datetime (defaults to now)"),
+    timezone: z.string().optional().describe("IANA timezone")
+  })
+}, async ({ activity, reference_time, timezone }) => {
+  try {
+    const params = new URLSearchParams();
+    if (reference_time) params.append("reference_time", reference_time);
+    if (timezone) params.append("timezone", timezone);
+
+    const response = await fetch(`${VREME_API_URL}/v1/utils/is_good_moment_for?${params}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ activity })
+    });
+    const result = await response.json();
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
+  }
+});
+
+server.registerTool("check_temporal_conflicts", {
+  description: "⚠️ CONFLICT CHECKER: Analyze events for conflicts with holidays, weekends, sleep hours, work restrictions. Returns conflict analysis per event, overall risk level, summary. Multi-region holiday checking and sleep pattern analysis.",
+  inputSchema: z.object({
+    events: z.array(z.object({
+      name: z.string(),
+      start: z.string().describe("ISO 8601 datetime"),
+      end: z.string().optional().describe("ISO 8601 datetime")
+    })).describe("Events to check"),
+    regions: z.array(z.string()).optional().describe("ISO country codes for holiday checking"),
+    timezone: z.string().optional().describe("IANA timezone")
+  })
+}, async ({ events, regions, timezone }) => {
+  try {
+    const response = await fetch(`${VREME_API_URL}/v1/utils/temporal_conflict_checker`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ events, regions, timezone })
+    });
+    const result = await response.json();
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
+  }
+});
+
+server.registerTool("explain_time_behavior", {
+  description: "📖 TIME EXPLAINER: Get simple explanations for complex time concepts. Topics: dst_transition (DST changes), business_days (how they work), timezone_difference (between two zones). Returns title, explanation, and key points in simple language.",
+  inputSchema: z.object({
+    topic: z.enum(["dst_transition", "business_days", "timezone_difference"]).describe("Time concept to explain"),
+    context: z.record(z.string(), z.string()).optional().describe("Additional context (e.g., {\"from_tz\": \"America/New_York\", \"to_tz\": \"Asia/Tokyo\"})")
+  })
+}, async ({ topic, context }) => {
+  try {
+    const response = await fetch(`${VREME_API_URL}/v1/utils/time_explanation`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ topic, context })
+    });
+    const result = await response.json();
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
+  }
+});
+
+server.registerTool("analyze_global_sacred_time", {
+  description: "🌏 GLOBAL SACRED TIME: Multi-region sacred time analysis for product launches, webinars, maintenance windows. Returns avoid windows (Ramadan, religious holidays), preferred windows. Supports religions: islam, christian, hindu, buddhist. Use for 'When to launch in US/SA/IN/ID?'",
+  inputSchema: z.object({
+    regions: z.array(z.string()).describe("ISO country codes (e.g., ['US', 'SA', 'IN', 'ID'])"),
+    window_start: z.string().describe("ISO 8601 datetime for analysis window start"),
+    window_end: z.string().describe("ISO 8601 datetime for analysis window end"),
+    context: z.enum(["product_launch", "webinar", "maintenance", "general"]).optional().describe("Event context"),
+    religions: z.array(z.enum(["islam", "christian", "hindu", "buddhist"])).optional().describe("Religious filters")
+  })
+}, async ({ regions, window_start, window_end, context, religions }) => {
+  try {
+    const response = await fetch(`${VREME_API_URL}/v1/culture/global_sacred_time`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ regions, window_start, window_end, context, religions })
+    });
+    const result = await response.json();
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
+  }
+});
+
+server.registerTool("get_weekly_sacred_rhythm", {
+  description: "📅 WEEKLY SACRED RHYTHM: Generate 7-day × 24-hour grid for multicultural teams. Shows aggregate scores for religious observances (Jumu'ah, Shabbat, Sunday worship) with severity scoring (0-1). Returns recommendations for recurring meetings. Use for 'When can US/SA/IL team meet?'",
+  inputSchema: z.object({
+    regions: z.array(z.string()).describe("ISO country codes"),
+    timezone: z.string().optional().describe("IANA timezone for output")
+  })
+}, async ({ regions, timezone }) => {
+  try {
+    const params = new URLSearchParams();
+    if (timezone) params.append("timezone", timezone);
+    params.append("regions", regions.join(","));
+
+    const response = await fetch(`${VREME_API_URL}/v1/culture/weekly_sacred_rhythm?${params}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ regions })
+    });
+    const result = await response.json();
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
+  }
+});
+
+server.registerTool("get_microseason_context", {
+  description: "🌸 MICROSEASON CONTEXT: Get seasonal micro-context for location and date. Returns microseason ID/name, day length, sunrise/sunset, description, suggested tone. Hemisphere-aware seasonal classification. Use for 'What microseason is it in Tokyo?'",
+  inputSchema: z.object({
+    location: z.string().describe("Location name or IANA timezone"),
+    date: z.string().optional().describe("ISO 8601 date (defaults to today)"),
+    timezone: z.string().optional().describe("IANA timezone override")
+  })
+}, async ({ location, date, timezone }) => {
+  try {
+    const params = new URLSearchParams();
+    params.append("location", location);
+    if (date) params.append("date", date);
+    if (timezone) params.append("timezone", timezone);
+
+    const response = await fetch(`${VREME_API_URL}/v1/culture/microseason_context?${params}`);
+    const result = await response.json();
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
+  }
+});
+
+// ============================================================
+// PHASE A - CLOCK & CALENDAR COMPLETION
+// ============================================================
+
+server.registerTool("convert_time_scale", {
+  description: "🔄 TIME SCALE CONVERTER: Convert between different time scales (Unix seconds, Unix millis, UTC ISO, Local ISO). Explicit timezone handling for local conversions. Batch conversion support. Use for 'Convert Unix timestamp 1733700000 to NYC time', 'What is this time in UTC?'",
+  inputSchema: z.object({
+    input_value: z.union([z.number(), z.string()]).describe("Time value to convert"),
+    input_scale: z.enum(["UNIX_SECONDS", "UNIX_MILLIS", "UTC_ISO", "LOCAL_ISO"]).describe("Input time scale"),
+    target_scale: z.enum(["UNIX_SECONDS", "UNIX_MILLIS", "UTC_ISO", "LOCAL_ISO"]).describe("Target time scale"),
+    target_timezone: z.string().optional().describe("IANA timezone for LOCAL_ISO conversions")
+  })
+}, async ({ input_value, input_scale, target_scale, target_timezone }) => {
+  try {
+    const response = await fetch(`${VREME_API_URL}/v1/time/scales/convert`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        input: { value: input_value, scale: input_scale },
+        target_scale,
+        target_timezone
+      })
+    });
+    const result = await response.json();
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
+  }
+});
+
+server.registerTool("list_time_scales", {
+  description: "📋 LIST TIME SCALES: List all supported time scales with descriptions and examples. Helps discover conversion capabilities. Shows: UNIX_SECONDS, UNIX_MILLIS, UTC_ISO, LOCAL_ISO (TAI, GPS planned).",
+  inputSchema: z.object({})
+}, async () => {
+  try {
+    const response = await fetch(`${VREME_API_URL}/v1/time/scales/list`);
+    const result = await response.json();
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
+  }
+});
+
+server.registerTool("interval_operations", {
+  description: "📊 INTERVAL ALGEBRA: Perform set operations on time intervals. Operations: UNION (merge intervals), INTERSECTION (find overlap), DIFFERENCE (subtract), GAPS (find gaps). Handles overlapping and adjacent intervals with normalized output. Use for 'Find overlapping time windows', 'Merge available time slots', 'Find gaps in schedule'.",
+  inputSchema: z.object({
+    intervals_a: z.array(z.object({
+      start: z.string().describe("ISO 8601 datetime"),
+      end: z.string().describe("ISO 8601 datetime")
+    })).describe("First set of intervals"),
+    intervals_b: z.array(z.object({
+      start: z.string().describe("ISO 8601 datetime"),
+      end: z.string().describe("ISO 8601 datetime")
+    })).optional().describe("Second set of intervals (not needed for GAPS)"),
+    operation: z.enum(["UNION", "INTERSECTION", "DIFFERENCE", "GAPS"]).describe("Set operation to perform")
+  })
+}, async ({ intervals_a, intervals_b, operation }) => {
+  try {
+    const response = await fetch(`${VREME_API_URL}/v1/time/intervals/ops`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ intervals_a, intervals_b, operation })
+    });
+    const result = await response.json();
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
+  }
+});
+
+server.registerTool("expand_recurrence", {
+  description: "🔁 RECURRENCE EXPANDER: Expand RRULE recurrence patterns (RFC 5545) to concrete occurrences within time window. Supports full RRULE syntax (FREQ=WEEKLY;BYDAY=MO,WE,FR). Safety limit: max 1000 occurrences. Use for 'Find all Mondays in January', 'When does this meeting repeat?', 'Show me all occurrences'.",
+  inputSchema: z.object({
+    rrule: z.string().describe("RFC 5545 RRULE string (e.g., 'FREQ=WEEKLY;BYDAY=MO,WE,FR')"),
+    start: z.string().describe("ISO 8601 start datetime for recurrence"),
+    window_from: z.string().describe("ISO 8601 window start for expansion"),
+    window_to: z.string().describe("ISO 8601 window end for expansion"),
+    timezone: z.string().optional().describe("IANA timezone"),
+    max_occurrences: z.number().optional().describe("Max occurrences to return (default: 1000)")
+  })
+}, async ({ rrule, start, window_from, window_to, timezone, max_occurrences }) => {
+  try {
+    const response = await fetch(`${VREME_API_URL}/v1/time/recurrence/expand`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        rrule,
+        start,
+        window: { from: window_from, to: window_to },
+        timezone,
+        max_occurrences
+      })
+    });
+    const result = await response.json();
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
+  }
+});
+
+server.registerTool("align_calendars", {
+  description: "📅 MULTI-CALENDAR ALIGNMENT: Show single chronological instant across multiple calendar systems. Supports: Gregorian, Unix, ISO Week, Ordinal (more planned: Islamic, Hebrew, Chinese). Use for 'What is Dec 9, 2025 in Islamic calendar?', 'Show this date in Hebrew and Chinese', 'Multi-calendar view'.",
+  inputSchema: z.object({
+    iso_date: z.string().describe("ISO 8601 date string (e.g., '2025-12-09')"),
+    calendars: z.array(z.string()).describe("Calendar system names (e.g., ['gregorian', 'islamic', 'hebrew'])"),
+    timezone: z.string().optional().describe("IANA timezone for context")
+  })
+}, async ({ iso_date, calendars, timezone }) => {
+  try {
+    const response = await fetch(`${VREME_API_URL}/v1/calendars/alignment`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ iso_date, calendars, timezone })
+    });
+    const result = await response.json();
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
+  }
+});
+
+server.registerTool("find_partial_dates", {
+  description: "🔍 PARTIAL DATE FINDER: Find all dates matching partial specification within search range. Search by year, month, day constraints. Use for 'Find all September 1st dates from 2020-2030', 'When is first Monday of September?', 'All dates with month=12 day=25'.",
+  inputSchema: z.object({
+    partial_spec: z.object({
+      year: z.number().optional().describe("Year constraint"),
+      month: z.number().optional().describe("Month constraint (1-12)"),
+      day: z.number().optional().describe("Day constraint (1-31)")
+    }).describe("Partial date specification"),
+    search_from: z.string().describe("ISO 8601 search range start"),
+    search_to: z.string().describe("ISO 8601 search range end"),
+    calendar: z.string().optional().describe("Calendar system (default: gregorian)")
+  })
+}, async ({ partial_spec, search_from, search_to, calendar }) => {
+  try {
+    const response = await fetch(`${VREME_API_URL}/v1/calendars/partial_dates`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        partial: partial_spec,
+        range: { from: search_from, to: search_to },
+        calendar
+      })
+    });
+    const result = await response.json();
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
+  }
+});
+
+server.registerTool("create_fuzzy_time_circa", {
+  description: "🌫️ FUZZY TIME FROM CIRCA: Create fuzzy time representation from circa date expression with explicit uncertainty. Precision levels: year, month, day. Returns center point, window, confidence score (0-1). Use for 'circa 1990', historical dates with uncertainty, approximate times. Represents uncertainty mathematically.",
+  inputSchema: z.object({
+    circa_date: z.string().describe("Circa date expression (e.g., '1990', '2024-03', '2024-03-15')"),
+    precision: z.enum(["year", "month", "day"]).optional().describe("Precision level (default: year)")
+  })
+}, async ({ circa_date, precision }) => {
+  try {
+    const response = await fetch(`${VREME_API_URL}/v1/time/fuzzy/from_circa`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ circa_date, precision })
+    });
+    const result = await response.json();
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
+  }
+});
+
+server.registerTool("create_fuzzy_time_window", {
+  description: "🌫️ FUZZY TIME FROM WINDOW: Create fuzzy time from explicit time window with custom confidence scoring. Use for uncertain future events, flexible scheduling, time estimates. Returns center point (midpoint), window bounds, confidence score. Enables mathematical operations on uncertain times.",
+  inputSchema: z.object({
+    window_start: z.string().describe("ISO 8601 window start"),
+    window_end: z.string().describe("ISO 8601 window end"),
+    confidence: z.number().optional().describe("Confidence score 0-1 (default: 0.7)"),
+    label: z.string().optional().describe("Human-readable label")
+  })
+}, async ({ window_start, window_end, confidence, label }) => {
+  try {
+    const response = await fetch(`${VREME_API_URL}/v1/time/fuzzy/from_window`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ window_start, window_end, confidence, label })
+    });
+    const result = await response.json();
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
+  }
+});
+
+server.registerTool("intersect_fuzzy_times", {
+  description: "🌫️ FUZZY TIME INTERSECTION: Find intersection of two fuzzy times with refined confidence. When two uncertain time ranges overlap, this computes their intersection with combined confidence scoring. Use for 'When do these two uncertain events both happen?', 'Find overlap between approximate times'.",
+  inputSchema: z.object({
+    fuzzy_time_1: z.object({
+      center: z.string(),
+      window_start: z.string(),
+      window_end: z.string(),
+      confidence: z.number(),
+      label: z.string().optional()
+    }).describe("First fuzzy time"),
+    fuzzy_time_2: z.object({
+      center: z.string(),
+      window_start: z.string(),
+      window_end: z.string(),
+      confidence: z.number(),
+      label: z.string().optional()
+    }).describe("Second fuzzy time")
+  })
+}, async ({ fuzzy_time_1, fuzzy_time_2 }) => {
+  try {
+    const response = await fetch(`${VREME_API_URL}/v1/time/fuzzy/intersect`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fuzzy_time_1, fuzzy_time_2 })
+    });
+    const result = await response.json();
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
+  }
+});
+
+// ============================================================
 // MCP RESOURCE SUPPORT (for temporal context auto-injection)
 // ============================================================
 
@@ -1589,10 +2104,10 @@ server.registerResource(
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("=== VREME MCP Server v1.6.2 ===");
+  console.error("=== VREME MCP Server v1.7.0 + Phase A ===");
   console.error("Vreme Time Service MCP Server running");
   console.error(`API URL: ${VREME_API_URL}`);
-  console.error("Available tools (20 total):");
+  console.error("Available tools (40 total):");
   console.error("  🧠 get_temporal_context - AUTO-CALL at conversation start for temporal awareness");
   console.error("  ⏰ get_current_time - Use for 'What time is it?' queries");
   console.error("  🧠 Personalized Awareness (NEW in v1.6.2):");
@@ -1607,6 +2122,24 @@ async function main() {
   console.error("     - list_financial_markets_holidays, get_market_holidays");
   console.error("  🔧 Utility Tools:");
   console.error("     - validate_date, add_business_days_detailed, resolve_relative_date");
+  console.error("");
+  console.error("  🆕 v1.7.0 Temporal Context System (11 tools):");
+  console.error("     - execute_time_arithmetic, resolve_temporal_phrase, compare_temporal_phrases");
+  console.error("     - export_temporal_context_snapshot, generate_temporal_prompt_prefix");
+  console.error("     - check_good_moment_for_activity, check_temporal_conflicts, explain_time_behavior");
+  console.error("     - analyze_global_sacred_time, get_weekly_sacred_rhythm, get_microseason_context");
+  console.error("");
+  console.error("  🚀 Phase A - Clock & Calendar Completion (9 tools):");
+  console.error("     - convert_time_scale - Time scale conversions (Unix, UTC, Local)");
+  console.error("     - list_time_scales - List supported time scales");
+  console.error("     - interval_operations - Set operations on intervals (UNION, INTERSECTION, etc)");
+  console.error("     - expand_recurrence - Expand RRULE patterns to occurrences");
+  console.error("     - align_calendars - Show instant across multiple calendars");
+  console.error("     - find_partial_dates - Find dates matching partial spec");
+  console.error("     - create_fuzzy_time_circa - Fuzzy time from circa expressions");
+  console.error("     - create_fuzzy_time_window - Fuzzy time from explicit window");
+  console.error("     - intersect_fuzzy_times - Intersection of two fuzzy times");
+  console.error("");
   console.error("  Privacy-first: All behavior data stored locally in ~/.vreme/");
 }
 
