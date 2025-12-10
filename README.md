@@ -6,19 +6,114 @@
 
 # Vreme Temporal MCP Server
 
-MCP server providing temporal intelligence - timezone conversions, 31 cultural calendars, astronomical events, prayer times, **247+ countries' holiday data**, **5 financial markets**, business time calculations, and **personalized temporal awareness** that adapts to YOUR cognitive rhythms.
+**v1.7.0 + Phase A - THE ULTIMATE TEMPORAL INTELLIGENCE SYSTEM FOR AI**
 
-## ✨ What's New in v1.6.2
+MCP server providing temporal intelligence - timezone conversions, 31 cultural calendars, astronomical events, prayer times, **247+ countries' holiday data**, **5 financial markets**, business time calculations, **personalized temporal awareness**, and **comprehensive temporal context system**.
 
-⚡ **Personalized Temporal Awareness** - Claude adapts to YOUR cognitive rhythms!
-- **3 NEW MCP Tools** - `get_user_cognitive_state`, `analyze_work_patterns`, `predict_user_availability`
-- **Local-only behavior analysis** - Analyzes your activity bursts to understand your cognitive rhythms
-- **Smart context switching** - 30-minute gap detection for natural work session boundaries
-- **Sleep pattern recognition** - Detects 2.5+ hour gaps during late night (10pm-6am)
-- **Lunch break detection** - Recognizes 30+ min breaks during lunch hours (11am-2pm)
-- **"Tomorrow" intelligence** - Work til 3am, say "tomorrow", sleep 3+ hrs → Claude knows you mean after you wake up
-- **Dual context files** - `temporal-context.json` (current time) + `behavior-context.json` (your patterns)
-- **Privacy-first** - All stored locally in `~/.vreme/` (no backend, no surveillance)
+## 🚀 What's New in v1.7.0 + Phase A
+
+**MAJOR RELEASE - 20 NEW MCP TOOLS**
+
+### v1.7.0 Temporal Context System (11 NEW tools)
+
+#### Phase 1: Core Time Intelligence (3 NEW tools)
+- ⏰ **`execute_time_arithmetic`** - Precise date/time math with business rules
+  - Add/subtract days, hours, minutes with step-by-step trace
+  - Business day calculations with regional holiday calendars
+  - Deterministic hashing for reproducibility
+
+- 🗣️ **`resolve_temporal_phrase`** - Natural language phrase resolution
+  - "tomorrow evening" → concrete time window with start/end
+  - Confidence scoring + alternative interpretations
+  - Context-aware (planning, scheduling, casual)
+
+- 📊 **`compare_temporal_phrases`** - Compare two temporal phrases
+  - "Is 'end of week' before 'early next week'?"
+  - Time difference, overlap analysis, human-readable comparison
+
+#### Phase 2: Multi-LLM Context (2 NEW tools)
+- 📸 **`export_temporal_context_snapshot`** - Portable temporal context
+  - TemporalContextSnapshotV1 schema for sharing between Claude, GPT-4, Gemini
+  - Includes: current time, calendars, upcoming events, rhythm fingerprint
+
+- 📝 **`generate_temporal_prompt_prefix`** - LLM-ready prompt prefix
+  - Convert snapshot to concise system prompt format
+  - Configurable max lines (default: 20)
+
+#### Phase 3: Tiny Utilities (3 NEW tools)
+- ✅ **`check_good_moment_for_activity`** - Activity timing intelligence
+  - "Is now good for deep work?", "Should I make financial decision now?"
+  - Activities: deep_work, financial_decision, hard_feedback, creative_play, exercise
+  - Score (0-1), reasons, suggested alternatives
+
+- ⚠️ **`check_temporal_conflicts`** - Event conflict analysis
+  - Check deployments, meetings for conflicts with holidays, weekends, sleep hours
+  - Multi-region holiday checking, risk scoring
+
+- 📖 **`explain_time_behavior`** - Time concept explanations
+  - Explain DST transitions, business days, timezone differences
+  - Simple language for complex concepts
+
+#### Phase 4: Cultural/Sacred Time (3 NEW tools)
+- 🌏 **`analyze_global_sacred_time`** - Multi-region sacred time analysis
+  - "When to launch product in US/SA/IN/ID?"
+  - Avoid windows: Ramadan, religious holidays, cultural events
+  - Preferred windows for multicultural scheduling
+
+- 📅 **`get_weekly_sacred_rhythm`** - Team sacred rhythm heatmap
+  - 7-day × 24-hour grid for multicultural teams
+  - Flags: Jumu'ah (Friday prayer), Shabbat, Sunday worship
+  - Find best recurring meeting times
+
+- 🌸 **`get_microseason_context`** - Seasonal micro-context
+  - Microseason ID/name, day length, sunrise/sunset
+  - Hemisphere-aware seasonal classification
+  - Suggested tone for content
+
+### 🚀 Phase A - Clock & Calendar Completion (9 NEW tools)
+
+**Mathematical foundation for temporal reasoning**
+
+#### Time Scales & Conversions (2 NEW tools)
+- 🔄 **`convert_time_scale`** - Convert between time scales
+  - Supports: UNIX_SECONDS, UNIX_MILLIS, UTC_ISO, LOCAL_ISO
+  - Planned: TAI, GPS time scales
+  - Use cases: "Convert Unix timestamp to UTC", "What is 1733700000 in New York time?"
+
+- 📋 **`list_time_scales`** - List supported time scales
+  - Shows all available scales with descriptions and examples
+
+#### Interval Algebra (2 NEW tools)
+- 📊 **`interval_operations`** - Set operations on time intervals
+  - Operations: UNION (merge), INTERSECTION (overlap), DIFFERENCE (subtract), GAPS (find gaps)
+  - Use cases: "Find overlapping time windows", "Merge available time slots", "Find gaps in schedule"
+
+- 🔁 **`expand_recurrence`** - RRULE recurrence pattern expansion
+  - Full RFC 5545 RRULE syntax support
+  - Use cases: "Find all Mondays in January", "When does this meeting repeat?"
+
+#### Multi-Calendar System (2 NEW tools)
+- 📅 **`align_calendars`** - Multi-calendar alignment
+  - Show single instant across multiple calendar systems
+  - Supports: Gregorian, Unix, ISO Week, Ordinal (more planned)
+  - Use cases: "What is Dec 9, 2025 in Islamic calendar?"
+
+- 🔍 **`find_partial_dates`** - Partial date matching
+  - Find all dates matching partial specification
+  - Use cases: "Find all September 1st dates", "When is first Monday of September?"
+
+#### Fuzzy/Uncertain Time (3 NEW tools)
+- 🌫️ **`create_fuzzy_time_circa`** - Fuzzy time from circa expressions
+  - Represent uncertainty explicitly with window + confidence
+  - Use cases: "circa 1990", historical dates, approximate times
+
+- 🌫️ **`create_fuzzy_time_window`** - Fuzzy time from explicit window
+  - Custom confidence scoring
+  - Use cases: Uncertain future events, flexible scheduling, time estimates
+
+- 🌫️ **`intersect_fuzzy_times`** - Intersection of two fuzzy times
+  - Find overlap between uncertain time ranges
+  - Use cases: "When do these uncertain events both happen?"
 
 📝 **[Full Version History & Changelog](CHANGELOG.md)**
 
