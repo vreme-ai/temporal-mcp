@@ -6,17 +6,17 @@
 
 # Vreme Temporal MCP Server
 
-**v1.7.0 + Phase A - THE ULTIMATE TEMPORAL INTELLIGENCE SYSTEM FOR AI**
+**v1.7.6 - THE ULTIMATE TEMPORAL INTELLIGENCE SYSTEM FOR AI**
 
-MCP server providing temporal intelligence - timezone conversions, 31 cultural calendars, astronomical events, prayer times, **247+ countries' holiday data**, **5 financial markets**, business time calculations, **personalized temporal awareness**, and **comprehensive temporal context system**.
+MCP server providing temporal intelligence - timezone conversions, 31 cultural calendars, astronomical events, prayer times, **247+ countries' holiday data**, **5 financial markets**, business time calculations, **personalized temporal awareness**, **comprehensive temporal context system**, **observance universe**, and **environmental/planetary time**.
 
-## 🚀 What's New in v1.7.0 + Phase A
+## 🚀 What's New in v1.7.6
 
-**MAJOR RELEASE - 20 NEW MCP TOOLS**
+**MAJOR RELEASE - 27 NEW MCP TOOLS (47 total)**
 
 ### v1.7.0 Temporal Context System (11 NEW tools)
 
-#### Phase 1: Core Time Intelligence (3 NEW tools)
+#### Core Time Intelligence (3 NEW tools)
 - ⏰ **`execute_time_arithmetic`** - Precise date/time math with business rules
   - Add/subtract days, hours, minutes with step-by-step trace
   - Business day calculations with regional holiday calendars
@@ -31,7 +31,7 @@ MCP server providing temporal intelligence - timezone conversions, 31 cultural c
   - "Is 'end of week' before 'early next week'?"
   - Time difference, overlap analysis, human-readable comparison
 
-#### Phase 2: Multi-LLM Context (2 NEW tools)
+#### Multi-LLM Context (2 NEW tools)
 - 📸 **`export_temporal_context_snapshot`** - Portable temporal context
   - TemporalContextSnapshotV1 schema for sharing between Claude, GPT-4, Gemini
   - Includes: current time, calendars, upcoming events, rhythm fingerprint
@@ -40,7 +40,7 @@ MCP server providing temporal intelligence - timezone conversions, 31 cultural c
   - Convert snapshot to concise system prompt format
   - Configurable max lines (default: 20)
 
-#### Phase 3: Tiny Utilities (3 NEW tools)
+#### Temporal Utilities (3 NEW tools)
 - ✅ **`check_good_moment_for_activity`** - Activity timing intelligence
   - "Is now good for deep work?", "Should I make financial decision now?"
   - Activities: deep_work, financial_decision, hard_feedback, creative_play, exercise
@@ -54,7 +54,7 @@ MCP server providing temporal intelligence - timezone conversions, 31 cultural c
   - Explain DST transitions, business days, timezone differences
   - Simple language for complex concepts
 
-#### Phase 4: Cultural/Sacred Time (3 NEW tools)
+#### Cultural/Sacred Time (3 NEW tools)
 - 🌏 **`analyze_global_sacred_time`** - Multi-region sacred time analysis
   - "When to launch product in US/SA/IN/ID?"
   - Avoid windows: Ramadan, religious holidays, cultural events
@@ -70,7 +70,7 @@ MCP server providing temporal intelligence - timezone conversions, 31 cultural c
   - Hemisphere-aware seasonal classification
   - Suggested tone for content
 
-### 🚀 Phase A - Clock & Calendar Completion (9 NEW tools)
+### Clock & Calendar Intelligence (9 NEW tools)
 
 **Mathematical foundation for temporal reasoning**
 
@@ -114,6 +114,62 @@ MCP server providing temporal intelligence - timezone conversions, 31 cultural c
 - 🌫️ **`intersect_fuzzy_times`** - Intersection of two fuzzy times
   - Find overlap between uncertain time ranges
   - Use cases: "When do these uncertain events both happen?"
+
+### Observance Universe (3 NEW tools)
+
+**Cultural & social time awareness beyond official holidays**
+- 📅 **`get_observances_on_date`** - Get awareness days, fun days, commemorations
+  - Categories: awareness_day, fun_day, tech, seasonal, commemoration, cultural, religious, corporate
+  - Scope filtering: global, country, region, organization
+  - Importance scoring (0-1) and tag-based filtering
+  - Use cases: "What awareness days are today?", "What tech holidays in March?", "Find health awareness days"
+
+- 🎯 **`get_today_story`** - Curated highlights for today
+  - Personalized relevance scoring (importance + scope match + tag overlap)
+  - Returns 1-3 most relevant observances
+  - User context: region, interests, timezone
+  - Use cases: "What's happening today?", "Show me relevant observances"
+
+- 📆 **`get_observances_calendar`** - Calendar view of observances for a month
+  - Month-wide observance planning
+  - Category and importance filtering
+  - Use cases: "What awareness days in June?", "Plan Pride Month content", "Find tech holidays this quarter"
+
+**Curated Database Includes:**
+- **Tech Days:** Pi Day (3/14), Programmers' Day (9/13), Talk Like a Pirate Day (9/19)
+- **Awareness:** Earth Day (4/22), World Health Day (4/7), World Mental Health Day (10/10), Pride Month (June)
+- **Fun Days:** National Donut Day (1st Friday of June)
+- **US-specific:** Black History Month (February), Women's History Month (March)
+
+### Environmental/Planetary Time (4 NEW tools)
+
+**Planet-aware time understanding with astronomical context**
+
+- 🌅 **`get_astro_context`** - Astronomical context (sunrise, sunset, moon phase)
+  - Sunrise, sunset, solar noon times (timezone-aware)
+  - Day length in hours
+  - Civil twilight boundaries
+  - Moon phase (8 phases: new_moon, waxing_crescent, first_quarter, waxing_gibbous, full_moon, waning_gibbous, last_quarter, waning_crescent)
+  - Use cases: "When is sunrise in NYC?", "Day length on Dec 21", "Moon phase today"
+
+- 🌗 **`get_day_phase`** - Day phase classification based on solar position
+  - 6 phases: pre_dawn, morning, midday, afternoon, evening, night
+  - Sun above/below horizon status
+  - Time relative to sunrise/sunset
+  - Use cases: "What phase of day is 10pm?", "Is sun above horizon now?"
+
+- 🍂 **`get_season_context`** - Hemisphere-aware seasonal classification
+  - 8 seasons: winter, early_spring, spring, early_summer, summer, early_autumn, autumn, early_winter
+  - Automatic hemisphere adjustment (southern hemisphere seasons shifted)
+  - Day of year tracking
+  - Use cases: "What season is it in Sydney in December?", "Season in NYC today"
+
+- 🌸 **`get_microseason_context`** - Fine-grained seasonal taxonomy
+  - 8 microseasons per year for detailed seasonal awareness
+  - Environmental band classification (7 bands: equatorial, tropical_north/south, mid_lat_north/south, polar_north/south)
+  - Tone hints for LLM content adaptation (e.g., "reflective, cozy" for deep winter)
+  - Display names and descriptions
+  - Use cases: "What microseason is it?", "Seasonal tone for content", "Environmental context for date"
 
 📝 **[Full Version History & Changelog](CHANGELOG.md)**
 
