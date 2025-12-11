@@ -2009,107 +2009,6 @@ server.registerTool("intersect_fuzzy_times", {
 });
 
 // ============================================================
-// PHASE C - ENVIRONMENTAL / PLANETARY TIME (4 NEW TOOLS)
-// ============================================================
-
-server.registerTool("get_astro_context", {
-  description: "🌅 ASTRONOMICAL CONTEXT: Get sunrise, sunset, day length, twilight times, and moon phase for a date and location. Returns solar noon, day length in hours, civil twilight boundaries, and current moon phase. Use for 'When is sunrise in NYC?', 'Day length on Dec 21', 'Moon phase today'.",
-  inputSchema: z.object({
-    date: z.string().describe("ISO date string (YYYY-MM-DD)"),
-    location: z.object({
-      lat: z.number().describe("Latitude in degrees (-90 to 90)"),
-      lon: z.number().describe("Longitude in degrees (-180 to 180)")
-    }).describe("Geographic coordinates"),
-    timezone: z.string().describe("IANA timezone (e.g. 'America/New_York')")
-  })
-}, async ({ date, location, timezone }) => {
-  try {
-    const response = await fetch(`${VREME_API_URL}/v1/env/astro_context`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ date, location, timezone })
-    });
-    const result = await response.json();
-    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
-  } catch (error) {
-    const msg = error instanceof Error ? error.message : "Unknown error";
-    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
-  }
-});
-
-server.registerTool("get_day_phase", {
-  description: "🌗 DAY PHASE CLASSIFICATION: Classify a timestamp into day phase (pre_dawn, morning, midday, afternoon, evening, night) based on solar position. Returns phase, sun above/below horizon, and time relative to sunrise/sunset. Use for 'What phase of day is 10pm?', 'Is sun above horizon now?'.",
-  inputSchema: z.object({
-    timestamp: z.string().describe("ISO timestamp with timezone (e.g. '2025-12-09T22:15:00-05:00')"),
-    location: z.object({
-      lat: z.number().describe("Latitude in degrees (-90 to 90)"),
-      lon: z.number().describe("Longitude in degrees (-180 to 180)")
-    }).describe("Geographic coordinates")
-  })
-}, async ({ timestamp, location }) => {
-  try {
-    const response = await fetch(`${VREME_API_URL}/v1/env/day_phase`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ timestamp, location })
-    });
-    const result = await response.json();
-    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
-  } catch (error) {
-    const msg = error instanceof Error ? error.message : "Unknown error";
-    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
-  }
-});
-
-server.registerTool("get_season_context", {
-  description: "🍂 SEASONAL CONTEXT: Get hemisphere-aware seasonal classification for a date and location. Returns season (winter, spring, summer, autumn with early/late variants), hemisphere, day of year, and contextual notes. Automatically adjusts for southern hemisphere. Use for 'What season is it in Sydney in December?', 'Season in NYC today'.",
-  inputSchema: z.object({
-    date: z.string().describe("ISO date string (YYYY-MM-DD)"),
-    location: z.object({
-      lat: z.number().describe("Latitude in degrees (-90 to 90)"),
-      lon: z.number().describe("Longitude in degrees (-180 to 180)")
-    }).describe("Geographic coordinates")
-  })
-}, async ({ date, location }) => {
-  try {
-    const response = await fetch(`${VREME_API_URL}/v1/env/season_context`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ date, location })
-    });
-    const result = await response.json();
-    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
-  } catch (error) {
-    const msg = error instanceof Error ? error.message : "Unknown error";
-    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
-  }
-});
-
-server.registerTool("get_microseason_context", {
-  description: "🌸 MICROSEASON TAXONOMY: Get fine-grained seasonal awareness with ~8 microseasons per year. Returns microseason ID, display name, description, tone hint for LLM content adaptation, and environmental band (equatorial, mid-latitude, polar). Use for 'What microseason is it?', 'Seasonal tone for content', 'Environmental context for date'.",
-  inputSchema: z.object({
-    date: z.string().describe("ISO date string (YYYY-MM-DD)"),
-    location: z.object({
-      lat: z.number().describe("Latitude in degrees (-90 to 90)"),
-      lon: z.number().describe("Longitude in degrees (-180 to 180)")
-    }).describe("Geographic coordinates")
-  })
-}, async ({ date, location }) => {
-  try {
-    const response = await fetch(`${VREME_API_URL}/v1/env/microseason_context`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ date, location })
-    });
-    const result = await response.json();
-    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
-  } catch (error) {
-    const msg = error instanceof Error ? error.message : "Unknown error";
-    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
-  }
-});
-
-// ============================================================
 // MCP RESOURCE SUPPORT (for temporal context auto-injection)
 // ============================================================
 
@@ -2205,10 +2104,10 @@ server.registerResource(
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("=== VREME MCP Server v1.7.6 ===");
+  console.error("=== VREME MCP Server v1.7.0 + Phase A ===");
   console.error("Vreme Time Service MCP Server running");
   console.error(`API URL: ${VREME_API_URL}`);
-  console.error("Available tools (47 total):");
+  console.error("Available tools (40 total):");
   console.error("  🧠 get_temporal_context - AUTO-CALL at conversation start for temporal awareness");
   console.error("  ⏰ get_current_time - Use for 'What time is it?' queries");
   console.error("  🧠 Personalized Awareness (NEW in v1.6.2):");
@@ -2230,7 +2129,7 @@ async function main() {
   console.error("     - check_good_moment_for_activity, check_temporal_conflicts, explain_time_behavior");
   console.error("     - analyze_global_sacred_time, get_weekly_sacred_rhythm, get_microseason_context");
   console.error("");
-  console.error("  ⏱️ Clock & Calendar Intelligence (9 tools):");
+  console.error("  🚀 Phase A - Clock & Calendar Completion (9 tools):");
   console.error("     - convert_time_scale - Time scale conversions (Unix, UTC, Local)");
   console.error("     - list_time_scales - List supported time scales");
   console.error("     - interval_operations - Set operations on intervals (UNION, INTERSECTION, etc)");
@@ -2240,17 +2139,6 @@ async function main() {
   console.error("     - create_fuzzy_time_circa - Fuzzy time from circa expressions");
   console.error("     - create_fuzzy_time_window - Fuzzy time from explicit window");
   console.error("     - intersect_fuzzy_times - Intersection of two fuzzy times");
-  console.error("");
-  console.error("  🎯 Observance Universe (3 tools):");
-  console.error("     - get_observances_on_date - Awareness days, fun days, tech holidays");
-  console.error("     - get_today_story - Curated highlights with relevance scoring");
-  console.error("     - get_observances_calendar - Month-wide observance planning");
-  console.error("");
-  console.error("  🌍 Environmental / Planetary Time (4 tools):");
-  console.error("     - get_astro_context - Sunrise, sunset, day length, moon phase");
-  console.error("     - get_day_phase - Day phase classification (morning, evening, night)");
-  console.error("     - get_season_context - Hemisphere-aware seasonal context");
-  console.error("     - get_microseason_context - Fine-grained seasonal taxonomy with tone hints");
   console.error("");
   console.error("  Privacy-first: All behavior data stored locally in ~/.vreme/");
 }
