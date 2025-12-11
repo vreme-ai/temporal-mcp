@@ -2104,7 +2104,7 @@ server.registerResource(
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("=== VREME MCP Server v1.7.0 + Phase A ===");
+  console.error("=== VREME MCP Server v1.8.1 ===");
   console.error("Vreme Time Service MCP Server running");
   console.error(`API URL: ${VREME_API_URL}`);
   console.error("Available tools (40 total):");

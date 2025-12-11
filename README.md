@@ -6,15 +6,15 @@
 
 # Vreme Temporal MCP Server
 
-**v1.8.0 - THE ULTIMATE TEMPORAL INTELLIGENCE SYSTEM FOR AI**
+**v1.8.1 - THE ULTIMATE TEMPORAL INTELLIGENCE SYSTEM FOR AI**
 
 MCP server providing temporal intelligence - **ASTROLOGY** (Western zodiac, Chinese zodiac, planet positions, aspects, sun ingresses, moon phases), timezone conversions, 31 cultural calendars, astronomical events, prayer times, **247+ countries' holiday data**, **5 financial markets**, business time calculations, **personalized temporal awareness**, **comprehensive temporal context system**, **observance universe**, and **environmental/planetary time**.
 
-## 🚀 What's New in v1.8.0
+## 🚀 What's New in v1.8.1
 
 **MAJOR RELEASE - 4 NEW ASTROLOGY TOOLS (51 total)**
 
-### v1.8.0 Astrology Layer (4 NEW tools)
+### v1.8.1 Astrology Layer (4 NEW tools)
 
 **Astronomy-backed astrology as time structure** - stateless calculations using JPL DE421 ephemeris
 
