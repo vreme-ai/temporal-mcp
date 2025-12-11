@@ -6,13 +6,55 @@
 
 # Vreme Temporal MCP Server
 
-**v1.7.6 - THE ULTIMATE TEMPORAL INTELLIGENCE SYSTEM FOR AI**
+**v1.8.1 - THE ULTIMATE TEMPORAL INTELLIGENCE SYSTEM FOR AI**
 
-MCP server providing temporal intelligence - timezone conversions, 31 cultural calendars, astronomical events, prayer times, **247+ countries' holiday data**, **5 financial markets**, business time calculations, **personalized temporal awareness**, **comprehensive temporal context system**, **observance universe**, and **environmental/planetary time**.
+MCP server providing temporal intelligence - **ASTROLOGY** (Western zodiac, Chinese zodiac, planet positions, aspects, sun ingresses, moon phases), timezone conversions, 31 cultural calendars, astronomical events, prayer times, **247+ countries' holiday data**, **5 financial markets**, business time calculations, **personalized temporal awareness**, **comprehensive temporal context system**, **observance universe**, and **environmental/planetary time**.
 
-## 🚀 What's New in v1.7.6
+## 🚀 What's New in v1.8.1
 
-**MAJOR RELEASE - 27 NEW MCP TOOLS (47 total)**
+**MAJOR RELEASE - 4 NEW ASTROLOGY TOOLS (51 total)**
+
+### v1.8.1 Astrology Layer (4 NEW tools)
+
+**Astronomy-backed astrology as time structure** - stateless calculations using JPL DE421 ephemeris
+
+#### Western Zodiac (2 NEW tools)
+- ♈ **`get_zodiac_context`** - Western zodiac signs, planet positions, aspects
+  - Get Sun, Moon, Mercury, Venus, Mars positions in tropical zodiac
+  - Detect aspects: conjunctions (0°), oppositions (180°), trines (120°), squares (90°), sextiles (60°)
+  - Astronomy-backed using Skyfield + JPL ephemeris
+  - Returns: sign, degree in sign, element, modality, aspect orbs
+  - Use cases: "What sign is the Sun in?", "What aspects are active today?"
+
+- 🐉 **`get_chinese_zodiac`** - Chinese zodiac animal & element cycles
+  - 60-year sexagenary cycle: 12 animals × 10 elements with yin/yang
+  - Lunar year calculation (Rat, Ox, Tiger... Pig)
+  - Element: Wood, Fire, Earth, Metal, Water
+  - Use cases: "What Chinese zodiac year is 2024?", "What's my birth year animal?"
+
+#### Astro Events (2 NEW tools)
+- 🌙 **`get_astro_events`** - Sun ingresses & moon phases in time window
+  - Sun ingresses: when Sun enters new zodiac sign (12 per year)
+  - Moon phases: new moon, first quarter, full moon, last quarter
+  - Returns UTC times + event types
+  - Use cases: "When does Sun enter Capricorn?", "Next full moon?", "All new moons this month"
+
+- 📅 **`get_astro_calendar`** - Astrology calendar with local times
+  - Monthly/yearly astro event calendar
+  - Converts UTC to user's timezone
+  - Filters by event type (sun_ingress, moon_phase, or both)
+  - Use cases: "Show me all sun sign changes and moon phases for December 2024 in NYC"
+
+**Design Philosophy:**
+- Treats astrology as **time structure**, not fortune-telling
+- **Stateless architecture** - no database, all calculations on-demand
+- **Astronomy-backed** - JPL DE421 ephemeris (1900-2050)
+- **Deterministic & versioned** - astro_v1 model version for reproducibility
+- **Privacy-first** - no data storage, pure computation
+
+## 🚀 What's Also Included (v1.7.6 and earlier)
+
+**47 ADDITIONAL MCP TOOLS**
 
 ### v1.7.0 Temporal Context System (11 NEW tools)
 
