@@ -2,113 +2,11 @@
 
 All notable changes to the Vreme Temporal MCP Server are documented here.
 
-## [1.8.0] - 2024-12-10
+## [1.7.0 + Phase A] - 2024-12-09
 
-### ⭐ MAJOR RELEASE: ASTROLOGY LAYER
+### 🚀 TEMPORAL OS EXTENSIONS - Phase A: Clock & Calendar Completion
 
-**4 NEW MCP TOOLS** - Astronomy-backed astrology as time structure
-
-Vreme now provides deterministic, astronomy-based astrological context. Astrology is treated as **time structure, not fortune-telling** - the core stays neutral, stateless, and LLM-agnostic. All calculations use precise ephemeris data (JPL DE421) via Skyfield.
-
-### Added
-
-#### Western Zodiac & Planetary Positions (2 NEW tools)
-- **`get_zodiac_context`** - Western zodiac signs, planet positions, and aspects
-  - Planet ecliptic longitudes for Sun, Moon, Mercury, Venus, Mars, Jupiter, Saturn, Uranus, Neptune, Pluto
-  - Tropical zodiac sign mapping with element (fire/earth/air/water) and modality (cardinal/fixed/mutable)
-  - Aspect detection: conjunction (0°), opposition (180°), trine (120°), square (90°), sextile (60°)
-  - Configurable orb tolerance (default: 8°)
-  - Deterministic: given timestamp + location, output is fully reproducible
-  - Use cases: "What's my sun sign?", "What aspects are active now?", "Where is Venus in the zodiac?"
-
-- **`get_chinese_zodiac`** - Chinese zodiac animal, element, and 60-year cycle
-  - Lunar year calculation
-  - 12-animal cycle: Rat, Ox, Tiger, Rabbit, Dragon, Snake, Horse, Goat, Monkey, Rooster, Dog, Pig
-  - 10-element cycle: Wood, Fire, Earth, Metal, Water (with yin/yang)
-  - 60-year sexagenary cycle index
-  - Use cases: "What Chinese zodiac animal is 2024?", "What element am I?", "2025 year of what?"
-
-#### Astronomical Events (2 NEW tools)
-- **`get_astro_events`** - Sun ingresses and moon phases in time window
-  - Sun ingresses: Exact times when Sun enters each zodiac sign (12 per year)
-  - Moon phases: New moon, first quarter, full moon, last quarter
-  - Precise UTC timestamps computed from ephemeris
-  - No database - events computed on-demand with optional LRU caching
-  - Use cases: "When is the next full moon?", "When does Sun enter Capricorn?", "Moon phases this month"
-
-- **`get_astro_calendar`** - Astrology calendar with local times
-  - Sun ingresses and moon phases for a date range
-  - Timezone-aware: converts all events to user's local time
-  - Human-readable descriptions perfect for LLM presentation
-  - Use cases: "Astro events in December in NYC", "Show me this month's moon phases in my timezone"
-
-### Backend APIs (Python Service)
-
-**4 NEW ENDPOINTS:**
-
-Astrology APIs (`/v1/astro/*`):
-- `POST /v1/astro/zodiac_context` - Western zodiac positions + aspects
-- `POST /v1/astro/chinese_cycle` - Chinese zodiac animal/element for date
-- `POST /v1/astro/events` - Astro events in UTC time window
-- `POST /v1/astro/calendar` - Calendar view with local times
-
-All endpoints follow Vreme's versioned envelope pattern with `input_hash` for determinism and `debug.calc_model_version` for reproducibility.
-
-### Technical Implementation
-
-**Stateless Architecture:**
-- No Postgres, no Memgraph, no Redis, no external DBs
-- All truth lives in versioned Python modules + ephemeris file (JPL DE421.bsp, ~17MB)
-- Deterministic: given (input JSON, ASTRO_MODEL_VERSION, ephemeris), output is fully reproducible
-- Module-level singletons for Skyfield loader (lazy-loaded, no external writes at runtime)
-
-**New Python Package: `vreme_astro/`**
-- `config.py` - Model versioning (ASTRO_MODEL_VERSION = "astro_v1")
-- `registries.py` - All data as frozen code (zodiac signs, aspects, Chinese animals/elements)
-- `ephem.py` - Skyfield ephemeris loader (stateless singletons)
-- `positions.py` - Ecliptic longitude calculations
-- `signs.py` - Longitude → zodiac sign mapping
-- `aspects.py` - Aspect detection between bodies
-- `chinese_cycle.py` - Chinese zodiac cycle computations
-- `events.py` - On-demand sun ingresses + moon phases
-- `calendar.py` - Timezone-aware calendar view
-- `snapshot.py` - Astro annex for TemporalContextSnapshot
-- `api.py` - FastAPI routes with versioned envelopes
-
-**Dependencies:**
-- `skyfield` 1.53+ - Precise astronomy calculations
-- JPL DE421 ephemeris - Planetary positions 1900-2050
-
-### Design Principles
-
-1. **Astronomy First, Symbolism Second** - Planet positions and lunar years computed using deterministic astronomy. Signs, phases, cycles are derived labels.
-2. **No Horoscopes in Core** - Core service returns structure (positions, signs, aspects, cycles, event times). Human/app layers may interpret; core remains neutral.
-3. **Stateless and Versioned** - No persistence beyond in-process caches. All algorithms associated with ASTRO_MODEL_VERSION.
-4. **LLM-Friendly, Engine-Agnostic** - Small, structured JSON blobs. Astro annex fits cleanly into TemporalContextSnapshot for any LLM.
-
-### Impact
-
-**Tool Count:** 47 → 51 MCP tools
-
-**After v1.8.0:**
-
-✨ **Astrology as Time Structure:**
-- Western zodiac positions (tropical system)
-- Planet ecliptic longitudes with precise timestamps
-- Aspect relationships between celestial bodies
-- Chinese 60-year cycle with animal/element
-- Astronomical events (sun ingresses, moon phases)
-- All calculations astronomy-backed and deterministic
-
-**Vreme is now the only temporal intelligence system with astronomy-backed astro data** - treating astrology as structured time, not fortune-telling.
-
----
-
-## [1.7.6] - 2024-12-10
-
-### 🚀 MAJOR RELEASE: TEMPORAL OS EXTENSIONS
-
-**16 NEW MCP TOOLS** - Mathematical foundation + Observance awareness + Planet-aware time
+**9 NEW MCP TOOLS** - Mathematical foundation for temporal reasoning
 
 ### Added
 
@@ -163,59 +61,9 @@ All endpoints follow Vreme's versioned envelope pattern with `input_hash` for de
   - Combined confidence scoring
   - Use cases: "When do these uncertain events both happen?", "Find overlap"
 
-#### Observance Universe (3 NEW tools)
-- **`get_observances_on_date`** - Get awareness days, fun days, commemorations on a date
-  - Categories: awareness_day, fun_day, tech, seasonal, commemoration, cultural, religious, corporate
-  - Scope filtering: global, country, region, organization
-  - Importance scoring (0-1)
-  - Tag-based filtering
-  - Use cases: "What awareness days are today?", "What tech holidays in March?", "Find health awareness days"
-
-- **`get_today_story`** - Curated highlights for today
-  - Personalized relevance scoring (importance + scope match + tag overlap)
-  - Returns 1-3 most relevant observances
-  - User context: region, interests, timezone
-  - Use cases: "What's happening today?", "Show me relevant observances", "What should I know about today?"
-
-- **`get_observances_calendar`** - Calendar view of observances for a month
-  - Month-wide observance planning
-  - Category and importance filtering
-  - Country-specific filtering
-  - Use cases: "What awareness days in June?", "Plan Pride Month content", "Find tech holidays this quarter"
-
-#### Environmental / Planetary Time (4 NEW tools)
-- **`get_astro_context`** - Astronomical context for date and location
-  - Sunrise, sunset, solar noon times (timezone-aware)
-  - Day length in hours
-  - Civil twilight boundaries
-  - Moon phase (8 phases: new_moon, waxing_crescent, first_quarter, waxing_gibbous, full_moon, waning_gibbous, last_quarter, waning_crescent)
-  - Use cases: "When is sunrise in NYC?", "Day length on Dec 21", "Moon phase today"
-
-- **`get_day_phase`** - Day phase classification based on solar position
-  - 6 phases: pre_dawn, morning, midday, afternoon, evening, night
-  - Sun above/below horizon status
-  - Time relative to sunrise/sunset
-  - Use cases: "What phase of day is 10pm?", "Is sun above horizon now?"
-
-- **`get_season_context`** - Hemisphere-aware seasonal classification
-  - 8 seasons: winter, early_spring, spring, early_summer, summer, early_autumn, autumn, early_winter
-  - Automatic hemisphere adjustment (southern hemisphere seasons shifted)
-  - Day of year tracking
-  - Contextual notes
-  - Use cases: "What season is it in Sydney in December?", "Season in NYC today"
-
-- **`get_microseason_context`** - Fine-grained seasonal taxonomy
-  - 8 microseasons per year for detailed seasonal awareness
-  - Environmental band classification (7 bands: equatorial, tropical_north/south, mid_lat_north/south, polar_north/south)
-  - Tone hints for LLM content adaptation (e.g., "reflective, cozy" for deep winter)
-  - Display names and descriptions
-  - Use cases: "What microseason is it?", "Seasonal tone for content", "Environmental context for date"
-
 ### Backend APIs (Python Service)
 
-**16 NEW ENDPOINTS:**
-
-Time & Calendar APIs (`/v1/time/*` and `/v1/calendars/*`):
+**9 NEW ENDPOINTS** at `/v1/time/*` and `/v1/calendars/*`:
 - `POST /v1/time/scales/convert` - Time scale conversions
 - `GET /v1/time/scales/list` - List time scales
 - `POST /v1/time/intervals/ops` - Interval operations
@@ -226,95 +74,52 @@ Time & Calendar APIs (`/v1/time/*` and `/v1/calendars/*`):
 - `POST /v1/time/fuzzy/from_window` - Window fuzzy time
 - `POST /v1/time/fuzzy/intersect` - Fuzzy time intersection
 
-Observance APIs (`/v1/observances/*`):
-- `POST /v1/observances/on_date` - Get observances on specific date
-- `POST /v1/observances/today_story` - Get curated today's highlights
-- `GET /v1/observances/calendar` - Get observances for entire month
-
-Environmental APIs (`/v1/env/*`):
-- `POST /v1/env/astro_context` - Get astronomical context (sunrise, sunset, moon phase)
-- `POST /v1/env/day_phase` - Classify timestamp into day phase
-- `POST /v1/env/season_context` - Get hemisphere-aware seasonal context
-- `POST /v1/env/microseason_context` - Get microseason taxonomy with tone hints
-
 ### Core Engines (Python Service)
 
-**9 NEW ENGINE MODULES** (~3,165 lines):
-
-Clock & Calendar Engines:
+**5 NEW ENGINE MODULES** (~1,815 lines):
 - `time_scales_converter.py` (329 lines) - TimeScalesConverter class
 - `interval_algebra.py` (386 lines) - IntervalAlgebra + RecurrenceExpander classes
 - `multi_calendar_alignment.py` (274 lines) - MultiCalendarAlignment class
 - `fuzzy_time.py` (471 lines) - FuzzyTime + FuzzyTimeBuilder + FuzzyTimeOperations classes
-
-Observance Engines:
-- `observance_registry.py` (320+ lines) - ObservanceRegistry + Observance + ObservanceRule classes
-  - Curated database of awareness days, fun days, tech holidays, commemorations
-  - RuleType support: FIXED (Pi Day 3/14), NTH_WEEKDAY (1st Friday of June), MONTH_RANGE (Pride Month)
-  - Examples: Pi Day, Earth Day, National Donut Day, Pride Month, Black History Month, World Health Day
-
-Environmental Engines:
-- `environmental_time.py` (600+ lines) - EnvironmentalTimeEngine + Astronomical/Season/Microseason engines
-  - AstronomicalEngine - Sunrise/sunset/moon phase calculations
-  - DayPhaseClassifier - 6-phase classification (pre_dawn, morning, midday, afternoon, evening, night)
-  - SeasonClassifier - 8-season taxonomy with hemisphere awareness
-  - MicroseasonEngine - 8 microseasons per year with tone hints
-  - EnvironmentalBands - 7 latitudinal bands (equatorial, tropical, mid-lat, polar)
+- `phase_a_routes.py` (355 lines) - Route registration for Phase A
 
 ### Architecture
 
 - **Deterministic APIs** - All endpoints return versioned responses with input_hash
 - **Singleton pattern** - All engines use efficient singleton instances
-- **Modular route registration** - Clean separation of concerns
+- **Modular route registration** - `phase_a_routes.py` for clean integration
 - **RFC 5545 compliance** - RRULE implementation follows standard
 - **Safety limits** - Max iterations on searches and expansions
 
 ### Changed
 
-- **Total MCP tools:** 47 (was 31) → **+16 new tools**
-- **Python service:** Complete temporal OS integration
-- **MCP server:** Updated with full temporal intelligence suite
-- **Version:** 1.7.6
+- **Total MCP tools:** 40 (was 31) → **+9 new tools**
+- **Python service:** Added Phase A integration to main.py
+- **MCP server:** Updated startup message with Phase A tools
 
 ### Documentation
 
-- Updated Python service README with all new features
-- Updated MCP CHANGELOG with comprehensive release notes
-- Updated website with feature highlights
+- Updated Python service README with Phase A features
+- Updated MCP CHANGELOG with comprehensive Phase A entry
 - All tools include detailed descriptions and use cases
 
 ### Impact
 
-**Before v1.7.6:**
+**Before Phase A:**
 - Time-aware with calendar intelligence
 - Business day calculations
-- Holiday awareness (official PUBLIC holidays only)
+- Holiday awareness
 
-**After v1.7.6:**
+**After Phase A:**
+- ✨ Mathematical foundation for temporal reasoning
+- ✨ Set theory over time intervals
+- ✨ Scale-agnostic time representation
+- ✨ Recurrence pattern evaluation
+- ✨ Multi-calendar alignment
+- ✨ Explicit uncertainty representation
 
-✨ **Mathematical Foundation:**
-- Set theory over time intervals (UNION, INTERSECTION, DIFFERENCE, GAPS)
-- Scale-agnostic time representation (Unix, UTC, Local, TAI/GPS planned)
-- Recurrence pattern evaluation (RFC 5545 RRULE)
-- Multi-calendar alignment
-- Explicit uncertainty representation (fuzzy time)
-
-✨ **Cultural & Social Awareness:**
-- Observance universe beyond official holidays
-- Awareness days (Earth Day, World Health Day, Pride Month)
-- Fun days (Pi Day, Talk Like a Pirate Day, National Donut Day)
-- Tech holidays (Programmers' Day)
-- Personalized relevance scoring
-
-✨ **Planetary Intelligence:**
-- Astronomical context (sunrise, sunset, twilight, moon phases)
-- Day phase classification based on solar position
-- Hemisphere-aware seasonal awareness
-- Microseason taxonomy with LLM tone hints
-- Environmental band classification (7 latitudinal zones)
-
-This transforms Vreme from "time-aware" to a **Temporal Operating System** that understands
-the mechanics, meaning, and planetary context of time.
+This establishes Vreme as having a **complete mathematical foundation** for temporal reasoning,
+transforming it from "time-aware" to a **Temporal Operating System**.
 
 ## [1.6.2] - 2024-12-08
 
