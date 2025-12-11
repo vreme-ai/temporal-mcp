@@ -2,6 +2,108 @@
 
 All notable changes to the Vreme Temporal MCP Server are documented here.
 
+## [1.8.0] - 2024-12-10
+
+### ⭐ MAJOR RELEASE: ASTROLOGY LAYER
+
+**4 NEW MCP TOOLS** - Astronomy-backed astrology as time structure
+
+Vreme now provides deterministic, astronomy-based astrological context. Astrology is treated as **time structure, not fortune-telling** - the core stays neutral, stateless, and LLM-agnostic. All calculations use precise ephemeris data (JPL DE421) via Skyfield.
+
+### Added
+
+#### Western Zodiac & Planetary Positions (2 NEW tools)
+- **`get_zodiac_context`** - Western zodiac signs, planet positions, and aspects
+  - Planet ecliptic longitudes for Sun, Moon, Mercury, Venus, Mars, Jupiter, Saturn, Uranus, Neptune, Pluto
+  - Tropical zodiac sign mapping with element (fire/earth/air/water) and modality (cardinal/fixed/mutable)
+  - Aspect detection: conjunction (0°), opposition (180°), trine (120°), square (90°), sextile (60°)
+  - Configurable orb tolerance (default: 8°)
+  - Deterministic: given timestamp + location, output is fully reproducible
+  - Use cases: "What's my sun sign?", "What aspects are active now?", "Where is Venus in the zodiac?"
+
+- **`get_chinese_zodiac`** - Chinese zodiac animal, element, and 60-year cycle
+  - Lunar year calculation
+  - 12-animal cycle: Rat, Ox, Tiger, Rabbit, Dragon, Snake, Horse, Goat, Monkey, Rooster, Dog, Pig
+  - 10-element cycle: Wood, Fire, Earth, Metal, Water (with yin/yang)
+  - 60-year sexagenary cycle index
+  - Use cases: "What Chinese zodiac animal is 2024?", "What element am I?", "2025 year of what?"
+
+#### Astronomical Events (2 NEW tools)
+- **`get_astro_events`** - Sun ingresses and moon phases in time window
+  - Sun ingresses: Exact times when Sun enters each zodiac sign (12 per year)
+  - Moon phases: New moon, first quarter, full moon, last quarter
+  - Precise UTC timestamps computed from ephemeris
+  - No database - events computed on-demand with optional LRU caching
+  - Use cases: "When is the next full moon?", "When does Sun enter Capricorn?", "Moon phases this month"
+
+- **`get_astro_calendar`** - Astrology calendar with local times
+  - Sun ingresses and moon phases for a date range
+  - Timezone-aware: converts all events to user's local time
+  - Human-readable descriptions perfect for LLM presentation
+  - Use cases: "Astro events in December in NYC", "Show me this month's moon phases in my timezone"
+
+### Backend APIs (Python Service)
+
+**4 NEW ENDPOINTS:**
+
+Astrology APIs (`/v1/astro/*`):
+- `POST /v1/astro/zodiac_context` - Western zodiac positions + aspects
+- `POST /v1/astro/chinese_cycle` - Chinese zodiac animal/element for date
+- `POST /v1/astro/events` - Astro events in UTC time window
+- `POST /v1/astro/calendar` - Calendar view with local times
+
+All endpoints follow Vreme's versioned envelope pattern with `input_hash` for determinism and `debug.calc_model_version` for reproducibility.
+
+### Technical Implementation
+
+**Stateless Architecture:**
+- No Postgres, no Memgraph, no Redis, no external DBs
+- All truth lives in versioned Python modules + ephemeris file (JPL DE421.bsp, ~17MB)
+- Deterministic: given (input JSON, ASTRO_MODEL_VERSION, ephemeris), output is fully reproducible
+- Module-level singletons for Skyfield loader (lazy-loaded, no external writes at runtime)
+
+**New Python Package: `vreme_astro/`**
+- `config.py` - Model versioning (ASTRO_MODEL_VERSION = "astro_v1")
+- `registries.py` - All data as frozen code (zodiac signs, aspects, Chinese animals/elements)
+- `ephem.py` - Skyfield ephemeris loader (stateless singletons)
+- `positions.py` - Ecliptic longitude calculations
+- `signs.py` - Longitude → zodiac sign mapping
+- `aspects.py` - Aspect detection between bodies
+- `chinese_cycle.py` - Chinese zodiac cycle computations
+- `events.py` - On-demand sun ingresses + moon phases
+- `calendar.py` - Timezone-aware calendar view
+- `snapshot.py` - Astro annex for TemporalContextSnapshot
+- `api.py` - FastAPI routes with versioned envelopes
+
+**Dependencies:**
+- `skyfield` 1.53+ - Precise astronomy calculations
+- JPL DE421 ephemeris - Planetary positions 1900-2050
+
+### Design Principles
+
+1. **Astronomy First, Symbolism Second** - Planet positions and lunar years computed using deterministic astronomy. Signs, phases, cycles are derived labels.
+2. **No Horoscopes in Core** - Core service returns structure (positions, signs, aspects, cycles, event times). Human/app layers may interpret; core remains neutral.
+3. **Stateless and Versioned** - No persistence beyond in-process caches. All algorithms associated with ASTRO_MODEL_VERSION.
+4. **LLM-Friendly, Engine-Agnostic** - Small, structured JSON blobs. Astro annex fits cleanly into TemporalContextSnapshot for any LLM.
+
+### Impact
+
+**Tool Count:** 47 → 51 MCP tools
+
+**After v1.8.0:**
+
+✨ **Astrology as Time Structure:**
+- Western zodiac positions (tropical system)
+- Planet ecliptic longitudes with precise timestamps
+- Aspect relationships between celestial bodies
+- Chinese 60-year cycle with animal/element
+- Astronomical events (sun ingresses, moon phases)
+- All calculations astronomy-backed and deterministic
+
+**Vreme is now the only temporal intelligence system with astronomy-backed astro data** - treating astrology as structured time, not fortune-telling.
+
+---
+
 ## [1.7.6] - 2024-12-10
 
 ### 🚀 MAJOR RELEASE: TEMPORAL OS EXTENSIONS

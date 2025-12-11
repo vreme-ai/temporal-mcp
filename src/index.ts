@@ -2202,13 +2202,150 @@ server.registerResource(
   }
 );
 
+// ==============================================================================
+// ASTROLOGY TOOLS (v1.8.0)
+// ==============================================================================
+
+server.registerTool("get_zodiac_context", {
+  description: "⭐ WESTERN ZODIAC CONTEXT: Get planet positions, zodiac signs, and aspects for a timestamp. Returns ecliptic longitudes, signs (with element/modality), and aspects (conjunction, opposition, trine, square, sextile) between bodies.",
+  inputSchema: z.object({
+    timestamp: z.string().describe("ISO 8601 timestamp"),
+    timezone: z.string().optional().describe("IANA timezone (default: UTC)"),
+    bodies: z.array(z.string()).optional().describe("Bodies to compute (default: sun, moon, mercury, venus, mars)"),
+    include_aspects: z.boolean().optional().describe("Include aspects (default: true)"),
+    max_orb_deg: z.number().optional().describe("Maximum orb for aspects in degrees (default: 8.0)")
+  })
+}, async ({ timestamp, timezone, bodies, include_aspects, max_orb_deg }) => {
+  const response = await fetch(`${VREME_API_URL}/v1/astro/zodiac_context`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      timestamp,
+      timezone: timezone || "UTC",
+      zodiac_system: "tropical",
+      bodies: bodies || ["sun", "moon", "mercury", "venus", "mars"],
+      include_aspects: include_aspects !== false,
+      max_orb_deg: max_orb_deg || 8.0
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`Astro API error: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return {
+    content: [
+      {
+        type: "text",
+        text: JSON.stringify(data, null, 2)
+      }
+    ]
+  };
+});
+
+server.registerTool("get_chinese_zodiac", {
+  description: "🐉 CHINESE ZODIAC: Get Chinese zodiac animal, element, and 60-year cycle for a date. Returns lunar year, animal (Rat to Pig), element (Wood/Fire/Earth/Metal/Water), yin/yang, and cycle indices.",
+  inputSchema: z.object({
+    date: z.string().describe("Date in YYYY-MM-DD format")
+  })
+}, async ({ date }) => {
+  const response = await fetch(`${VREME_API_URL}/v1/astro/chinese_cycle`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ date })
+  });
+
+  if (!response.ok) {
+    throw new Error(`Astro API error: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return {
+    content: [
+      {
+        type: "text",
+        text: JSON.stringify(data, null, 2)
+      }
+    ]
+  };
+});
+
+server.registerTool("get_astro_events", {
+  description: "🌙 ASTRO EVENTS: Get astronomical events in a time window. Returns sun ingresses (Sun entering each zodiac sign) and moon phases (new, first quarter, full, last quarter) with precise UTC timestamps.",
+  inputSchema: z.object({
+    from_utc: z.string().describe("Start of time window (ISO 8601 UTC)"),
+    to_utc: z.string().describe("End of time window (ISO 8601 UTC)"),
+    event_types: z.array(z.string()).optional().describe("Event types: sun_ingress, moon_phase (default: both)")
+  })
+}, async ({ from_utc, to_utc, event_types }) => {
+  const response = await fetch(`${VREME_API_URL}/v1/astro/events`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      from_utc,
+      to_utc,
+      event_types: event_types || ["sun_ingress", "moon_phase"]
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`Astro API error: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return {
+    content: [
+      {
+        type: "text",
+        text: JSON.stringify(data, null, 2)
+      }
+    ]
+  };
+});
+
+server.registerTool("get_astro_calendar", {
+  description: "📅 ASTRO CALENDAR: Get astrology calendar for a date range in user's timezone. Returns sun ingresses and moon phases with local times and human-readable descriptions perfect for LLM presentation.",
+  inputSchema: z.object({
+    from_date: z.string().describe("Start date (YYYY-MM-DD)"),
+    to_date: z.string().describe("End date (YYYY-MM-DD)"),
+    timezone: z.string().describe("IANA timezone for local times"),
+    include_event_types: z.array(z.string()).optional().describe("Event types to include (default: all)")
+  })
+}, async ({ from_date, to_date, timezone, include_event_types }) => {
+  const response = await fetch(`${VREME_API_URL}/v1/astro/calendar`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      from_date,
+      to_date,
+      timezone,
+      include_event_types: include_event_types || ["sun_ingress", "moon_phase"]
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`Astro API error: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return {
+    content: [
+      {
+        type: "text",
+        text: JSON.stringify(data, null, 2)
+      }
+    ]
+  };
+});
+
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("=== VREME MCP Server v1.7.6 ===");
+  console.error("=== VREME MCP Server v1.8.0 ===");
   console.error("Vreme Time Service MCP Server running");
   console.error(`API URL: ${VREME_API_URL}`);
-  console.error("Available tools (47 total):");
+  console.error("Available tools (51 total):");
   console.error("  🧠 get_temporal_context - AUTO-CALL at conversation start for temporal awareness");
   console.error("  ⏰ get_current_time - Use for 'What time is it?' queries");
   console.error("  🧠 Personalized Awareness (NEW in v1.6.2):");
@@ -2251,6 +2388,12 @@ async function main() {
   console.error("     - get_day_phase - Day phase classification (morning, evening, night)");
   console.error("     - get_season_context - Hemisphere-aware seasonal context");
   console.error("     - get_microseason_context - Fine-grained seasonal taxonomy with tone hints");
+  console.error("");
+  console.error("  ⭐ Astrology (4 NEW tools in v1.8.0):");
+  console.error("     - get_zodiac_context - Western zodiac signs, planet positions, aspects");
+  console.error("     - get_chinese_zodiac - Chinese zodiac animal & element for date");
+  console.error("     - get_astro_events - Sun ingresses & moon phases in time window");
+  console.error("     - get_astro_calendar - Astrology calendar with local times");
   console.error("");
   console.error("  Privacy-first: All behavior data stored locally in ~/.vreme/");
 }
