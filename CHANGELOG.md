@@ -2,6 +2,17 @@
 
 All notable changes to the Vreme Temporal MCP Server are documented here.
 
+## [1.8.4] - 2024-12-12
+
+### 🔧 Design Principle Compliance
+
+- **Fixed text generation violation** in `temporal_context_snapshot.py`
+  - Refactored `generate_prompt_prefix()` to return structured data instead of generated text
+  - Removed prescriptive suggestions like "Keep suggestions tonight light and avoid starting large new tasks"
+  - Now returns pure structured context: `current_time`, `rhythm`, `recent_activity`, `upcoming_events`, `sacred_time_flags`, `time_of_day_classification`
+  - LLM now interprets raw temporal data rather than receiving pre-written instructions
+  - Aligns with core principle: "We are NOT text generators (that's the LLM's job)"
+
 ## [1.8.3] - 2024-12-12
 
 ### 🔧 Bug Fixes
