@@ -2085,30 +2085,6 @@ server.registerTool("get_season_context", {
   }
 });
 
-server.registerTool("get_microseason_context", {
-  description: "🌸 MICROSEASON TAXONOMY: Get fine-grained seasonal awareness with ~8 microseasons per year. Returns microseason ID, display name, description, tone hint for LLM content adaptation, and environmental band (equatorial, mid-latitude, polar). Use for 'What microseason is it?', 'Seasonal tone for content', 'Environmental context for date'.",
-  inputSchema: z.object({
-    date: z.string().describe("ISO date string (YYYY-MM-DD)"),
-    location: z.object({
-      lat: z.number().describe("Latitude in degrees (-90 to 90)"),
-      lon: z.number().describe("Longitude in degrees (-180 to 180)")
-    }).describe("Geographic coordinates")
-  })
-}, async ({ date, location }) => {
-  try {
-    const response = await fetch(`${VREME_API_URL}/v1/env/microseason_context`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ date, location })
-    });
-    const result = await response.json();
-    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
-  } catch (error) {
-    const msg = error instanceof Error ? error.message : "Unknown error";
-    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
-  }
-});
-
 // ============================================================
 // MCP RESOURCE SUPPORT (for temporal context auto-injection)
 // ============================================================
