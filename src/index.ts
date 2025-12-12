@@ -312,7 +312,7 @@ server.registerTool("get_temporal_context", {
 });
 
 server.registerTool("get_current_time", {
-  description: "⏰ CURRENT TIME TOOL - USE THIS WHEN USER ASKS 'What time is it?', 'What's the time?', 'Current time?', or any variation asking for the current time. This tool automatically uses the user's system timezone (detected from their computer) and returns structured temporal data. NO PARAMETERS REQUIRED - just call this tool immediately when user asks for current time. Returns structured data: ISO datetime, timezone, day_of_week, date_string, time_string, time_of_day. LLM formats this into natural language response.",
+  description: "⏰🔴 CRITICAL: CALL THIS BEFORE WRITING ANY DATES IN CODE/DOCS/CHANGELOGS! Use when user asks 'What time is it?' OR when YOU need to write dates (YYYY-MM-DD format). ALWAYS check current date before creating version tags, CHANGELOG entries, git commit messages, or any timestamped content. Returns: ISO datetime, timezone, day_of_week, date_string (e.g., 'Thursday, December 12, 2024'), time_string, time_of_day. NO PARAMETERS REQUIRED. Prevents temporal bugs caused by using wrong dates. If you write '2024-12-10' but today is 2024-12-12, you've created a version control error.",
   inputSchema: {
     // No parameters - tool automatically detects system timezone
   },
@@ -2009,6 +2009,107 @@ server.registerTool("intersect_fuzzy_times", {
 });
 
 // ============================================================
+// PHASE C - ENVIRONMENTAL / PLANETARY TIME (4 NEW TOOLS)
+// ============================================================
+
+server.registerTool("get_astro_context", {
+  description: "🌅 ASTRONOMICAL CONTEXT: Get sunrise, sunset, day length, twilight times, and moon phase for a date and location. Returns solar noon, day length in hours, civil twilight boundaries, and current moon phase. Use for 'When is sunrise in NYC?', 'Day length on Dec 21', 'Moon phase today'.",
+  inputSchema: z.object({
+    date: z.string().describe("ISO date string (YYYY-MM-DD)"),
+    location: z.object({
+      lat: z.number().describe("Latitude in degrees (-90 to 90)"),
+      lon: z.number().describe("Longitude in degrees (-180 to 180)")
+    }).describe("Geographic coordinates"),
+    timezone: z.string().describe("IANA timezone (e.g. 'America/New_York')")
+  })
+}, async ({ date, location, timezone }) => {
+  try {
+    const response = await fetch(`${VREME_API_URL}/v1/env/astro_context`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ date, location, timezone })
+    });
+    const result = await response.json();
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
+  }
+});
+
+server.registerTool("get_day_phase", {
+  description: "🌗 DAY PHASE CLASSIFICATION: Classify a timestamp into day phase (pre_dawn, morning, midday, afternoon, evening, night) based on solar position. Returns phase, sun above/below horizon, and time relative to sunrise/sunset. Use for 'What phase of day is 10pm?', 'Is sun above horizon now?'.",
+  inputSchema: z.object({
+    timestamp: z.string().describe("ISO timestamp with timezone (e.g. '2025-12-09T22:15:00-05:00')"),
+    location: z.object({
+      lat: z.number().describe("Latitude in degrees (-90 to 90)"),
+      lon: z.number().describe("Longitude in degrees (-180 to 180)")
+    }).describe("Geographic coordinates")
+  })
+}, async ({ timestamp, location }) => {
+  try {
+    const response = await fetch(`${VREME_API_URL}/v1/env/day_phase`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ timestamp, location })
+    });
+    const result = await response.json();
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
+  }
+});
+
+server.registerTool("get_season_context", {
+  description: "🍂 SEASONAL CONTEXT: Get hemisphere-aware seasonal classification for a date and location. Returns season (winter, spring, summer, autumn with early/late variants), hemisphere, day of year, and contextual notes. Automatically adjusts for southern hemisphere. Use for 'What season is it in Sydney in December?', 'Season in NYC today'.",
+  inputSchema: z.object({
+    date: z.string().describe("ISO date string (YYYY-MM-DD)"),
+    location: z.object({
+      lat: z.number().describe("Latitude in degrees (-90 to 90)"),
+      lon: z.number().describe("Longitude in degrees (-180 to 180)")
+    }).describe("Geographic coordinates")
+  })
+}, async ({ date, location }) => {
+  try {
+    const response = await fetch(`${VREME_API_URL}/v1/env/season_context`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ date, location })
+    });
+    const result = await response.json();
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
+  }
+});
+
+server.registerTool("get_microseason_context", {
+  description: "🌸 MICROSEASON TAXONOMY: Get fine-grained seasonal awareness with ~8 microseasons per year. Returns microseason ID, display name, description, tone hint for LLM content adaptation, and environmental band (equatorial, mid-latitude, polar). Use for 'What microseason is it?', 'Seasonal tone for content', 'Environmental context for date'.",
+  inputSchema: z.object({
+    date: z.string().describe("ISO date string (YYYY-MM-DD)"),
+    location: z.object({
+      lat: z.number().describe("Latitude in degrees (-90 to 90)"),
+      lon: z.number().describe("Longitude in degrees (-180 to 180)")
+    }).describe("Geographic coordinates")
+  })
+}, async ({ date, location }) => {
+  try {
+    const response = await fetch(`${VREME_API_URL}/v1/env/microseason_context`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ date, location })
+    });
+    const result = await response.json();
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
+  }
+});
+
+// ============================================================
 // MCP RESOURCE SUPPORT (for temporal context auto-injection)
 // ============================================================
 
@@ -2101,13 +2202,248 @@ server.registerResource(
   }
 );
 
+// ==============================================================================
+// ASTROLOGY TOOLS (v1.8.0)
+// ==============================================================================
+
+server.registerTool("get_zodiac_context", {
+  description: "⭐ WESTERN ZODIAC CONTEXT: Get planet positions, zodiac signs, and aspects for a timestamp. Returns ecliptic longitudes, signs (with element/modality), and aspects (conjunction, opposition, trine, square, sextile) between bodies.",
+  inputSchema: z.object({
+    timestamp: z.string().describe("ISO 8601 timestamp"),
+    timezone: z.string().optional().describe("IANA timezone (default: UTC)"),
+    bodies: z.array(z.string()).optional().describe("Bodies to compute (default: sun, moon, mercury, venus, mars)"),
+    include_aspects: z.boolean().optional().describe("Include aspects (default: true)"),
+    max_orb_deg: z.number().optional().describe("Maximum orb for aspects in degrees (default: 8.0)")
+  })
+}, async ({ timestamp, timezone, bodies, include_aspects, max_orb_deg }) => {
+  const response = await fetch(`${VREME_API_URL}/v1/astro/zodiac_context`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      timestamp,
+      timezone: timezone || "UTC",
+      zodiac_system: "tropical",
+      bodies: bodies || ["sun", "moon", "mercury", "venus", "mars"],
+      include_aspects: include_aspects !== false,
+      max_orb_deg: max_orb_deg || 8.0
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`Astro API error: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return {
+    content: [
+      {
+        type: "text",
+        text: JSON.stringify(data, null, 2)
+      }
+    ]
+  };
+});
+
+server.registerTool("get_chinese_zodiac", {
+  description: "🐉 CHINESE ZODIAC: Get Chinese zodiac animal, element, and 60-year cycle for a date. Returns lunar year, animal (Rat to Pig), element (Wood/Fire/Earth/Metal/Water), yin/yang, and cycle indices.",
+  inputSchema: z.object({
+    date: z.string().describe("Date in YYYY-MM-DD format")
+  })
+}, async ({ date }) => {
+  const response = await fetch(`${VREME_API_URL}/v1/astro/chinese_cycle`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ date })
+  });
+
+  if (!response.ok) {
+    throw new Error(`Astro API error: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return {
+    content: [
+      {
+        type: "text",
+        text: JSON.stringify(data, null, 2)
+      }
+    ]
+  };
+});
+
+server.registerTool("get_astro_events", {
+  description: "🌙 ASTRO EVENTS: Get astronomical events in a time window. Returns sun ingresses (Sun entering each zodiac sign) and moon phases (new, first quarter, full, last quarter) with precise UTC timestamps.",
+  inputSchema: z.object({
+    from_utc: z.string().describe("Start of time window (ISO 8601 UTC)"),
+    to_utc: z.string().describe("End of time window (ISO 8601 UTC)"),
+    event_types: z.array(z.string()).optional().describe("Event types: sun_ingress, moon_phase (default: both)")
+  })
+}, async ({ from_utc, to_utc, event_types }) => {
+  const response = await fetch(`${VREME_API_URL}/v1/astro/events`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      from_utc,
+      to_utc,
+      event_types: event_types || ["sun_ingress", "moon_phase"]
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`Astro API error: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return {
+    content: [
+      {
+        type: "text",
+        text: JSON.stringify(data, null, 2)
+      }
+    ]
+  };
+});
+
+server.registerTool("get_astro_calendar", {
+  description: "📅 ASTRO CALENDAR: Get astrology calendar for a date range in user's timezone. Returns sun ingresses and moon phases with local times and human-readable descriptions perfect for LLM presentation.",
+  inputSchema: z.object({
+    from_date: z.string().describe("Start date (YYYY-MM-DD)"),
+    to_date: z.string().describe("End date (YYYY-MM-DD)"),
+    timezone: z.string().describe("IANA timezone for local times"),
+    include_event_types: z.array(z.string()).optional().describe("Event types to include (default: all)")
+  })
+}, async ({ from_date, to_date, timezone, include_event_types }) => {
+  const response = await fetch(`${VREME_API_URL}/v1/astro/calendar`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      from_date,
+      to_date,
+      timezone,
+      include_event_types: include_event_types || ["sun_ingress", "moon_phase"]
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`Astro API error: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return {
+    content: [
+      {
+        type: "text",
+        text: JSON.stringify(data, null, 2)
+      }
+    ]
+  };
+});
+
+// Observance Universe Tools
+server.registerTool("get_observances_on_date", {
+  description: "📅 OBSERVANCES ON DATE: Get awareness days, fun days, commemorations, and cultural observances for a specific date. Categories: awareness_day, fun_day, tech, seasonal, commemoration, cultural, religious, corporate.",
+  inputSchema: z.object({
+    date: z.string().describe("ISO 8601 date (YYYY-MM-DD)"),
+    timezone: z.string().optional().describe("IANA timezone for context"),
+    country: z.string().optional().describe("ISO country code (e.g., 'US')"),
+    categories: z.array(z.string()).optional().describe("Filter by categories"),
+    min_importance: z.number().optional().describe("Minimum importance score (0.0-1.0)"),
+    tags: z.array(z.string()).optional().describe("Filter by tags (any match)")
+  })
+}, async ({ date, timezone, country, categories, min_importance, tags }) => {
+  const requestBody: any = { date, timezone };
+  if (country || categories || min_importance || tags) {
+    requestBody.scope = country ? { country } : undefined;
+    requestBody.filters = {
+      categories,
+      min_importance: min_importance || 0.0,
+      tags
+    };
+  }
+
+  const response = await fetch(`${VREME_API_URL}/v1/observances/on_date`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(requestBody)
+  });
+
+  if (!response.ok) {
+    throw new Error(`Observance API error: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return {
+    content: [{ type: "text", text: JSON.stringify(data, null, 2) }]
+  };
+});
+
+server.registerTool("get_today_story", {
+  description: "🎯 TODAY'S STORY: Get curated highlights for today - most relevant observances based on user's region and interests. Returns 1-3 personalized observances with relevance scoring.",
+  inputSchema: z.object({
+    user_timezone: z.string().optional().describe("User's IANA timezone"),
+    user_region: z.string().optional().describe("User's country/region code"),
+    user_tags: z.array(z.string()).optional().describe("User's interest tags"),
+    max_items: z.number().optional().describe("Max highlights to return (1-10, default: 3)")
+  })
+}, async ({ user_timezone, user_region, user_tags, max_items }) => {
+  const response = await fetch(`${VREME_API_URL}/v1/observances/today_story`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      user_timezone,
+      user_region,
+      user_tags,
+      max_items: max_items || 3
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`Observance API error: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return {
+    content: [{ type: "text", text: JSON.stringify(data, null, 2) }]
+  };
+});
+
+server.registerTool("get_observances_calendar", {
+  description: "📆 OBSERVANCES CALENDAR: Get calendar view of observances for a specific month. Returns all observances by day for planning and UI calendar displays.",
+  inputSchema: z.object({
+    year: z.number().describe("Year"),
+    month: z.number().describe("Month (1-12)"),
+    country: z.string().optional().describe("ISO country code filter"),
+    categories: z.string().optional().describe("Comma-separated categories"),
+    min_importance: z.number().optional().describe("Minimum importance (0.0-1.0)")
+  })
+}, async ({ year, month, country, categories, min_importance }) => {
+  const params = new URLSearchParams({
+    year: year.toString(),
+    month: month.toString()
+  });
+  if (country) params.append("country", country);
+  if (categories) params.append("categories", categories);
+  if (min_importance !== undefined) params.append("min_importance", min_importance.toString());
+
+  const response = await fetch(`${VREME_API_URL}/v1/observances/calendar?${params.toString()}`);
+
+  if (!response.ok) {
+    throw new Error(`Observance API error: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return {
+    content: [{ type: "text", text: JSON.stringify(data, null, 2) }]
+  };
+});
+
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("=== VREME MCP Server v1.8.1 ===");
+  console.error("=== VREME MCP Server v1.8.2 ===");
   console.error("Vreme Time Service MCP Server running");
   console.error(`API URL: ${VREME_API_URL}`);
-  console.error("Available tools (40 total):");
+  console.error("Available tools (51 total):");
   console.error("  🧠 get_temporal_context - AUTO-CALL at conversation start for temporal awareness");
   console.error("  ⏰ get_current_time - Use for 'What time is it?' queries");
   console.error("  🧠 Personalized Awareness (NEW in v1.6.2):");
@@ -2129,7 +2465,7 @@ async function main() {
   console.error("     - check_good_moment_for_activity, check_temporal_conflicts, explain_time_behavior");
   console.error("     - analyze_global_sacred_time, get_weekly_sacred_rhythm, get_microseason_context");
   console.error("");
-  console.error("  🚀 Phase A - Clock & Calendar Completion (9 tools):");
+  console.error("  ⏱️ Clock & Calendar Intelligence (9 tools):");
   console.error("     - convert_time_scale - Time scale conversions (Unix, UTC, Local)");
   console.error("     - list_time_scales - List supported time scales");
   console.error("     - interval_operations - Set operations on intervals (UNION, INTERSECTION, etc)");
@@ -2139,6 +2475,23 @@ async function main() {
   console.error("     - create_fuzzy_time_circa - Fuzzy time from circa expressions");
   console.error("     - create_fuzzy_time_window - Fuzzy time from explicit window");
   console.error("     - intersect_fuzzy_times - Intersection of two fuzzy times");
+  console.error("");
+  console.error("  🎯 Observance Universe (3 tools):");
+  console.error("     - get_observances_on_date - Awareness days, fun days, tech holidays");
+  console.error("     - get_today_story - Curated highlights with relevance scoring");
+  console.error("     - get_observances_calendar - Month-wide observance planning");
+  console.error("");
+  console.error("  🌍 Environmental / Planetary Time (4 tools):");
+  console.error("     - get_astro_context - Sunrise, sunset, day length, moon phase");
+  console.error("     - get_day_phase - Day phase classification (morning, evening, night)");
+  console.error("     - get_season_context - Hemisphere-aware seasonal context");
+  console.error("     - get_microseason_context - Fine-grained seasonal taxonomy with tone hints");
+  console.error("");
+  console.error("  ⭐ Astrology (4 NEW tools in v1.8.0):");
+  console.error("     - get_zodiac_context - Western zodiac signs, planet positions, aspects");
+  console.error("     - get_chinese_zodiac - Chinese zodiac animal & element for date");
+  console.error("     - get_astro_events - Sun ingresses & moon phases in time window");
+  console.error("     - get_astro_calendar - Astrology calendar with local times");
   console.error("");
   console.error("  Privacy-first: All behavior data stored locally in ~/.vreme/");
 }

@@ -2,15 +2,15 @@
 
 All notable changes to the Vreme Temporal MCP Server are documented here.
 
-## [1.8.1] - 2024-12-10
+## [1.8.2] - 2024-12-12
 
-### 🚀 ASTROLOGY LAYER - Astronomy-backed time structure
+### 🚀 ASTROLOGY + OBSERVANCE UNIVERSE
 
-**4 NEW MCP TOOLS (51 total)** - Western zodiac, Chinese zodiac, sun ingresses, moon phases
+**7 NEW MCP TOOLS (51 total)** - Astronomy-backed astrology + cultural observances
 
 ### Added
 
-#### Astrology Tools (4 NEW tools)
+#### Astrology Layer (4 NEW tools)
 - **`get_zodiac_context`** - Western zodiac signs, planet positions, aspects
   - Sun, Moon, Mercury, Venus, Mars positions in tropical zodiac
   - Aspect detection: conjunctions (0°), oppositions (180°), trines (120°), squares (90°), sextiles (60°)
@@ -32,8 +32,24 @@ All notable changes to the Vreme Temporal MCP Server are documented here.
   - Converts UTC to user's timezone
   - Filters by event type (sun_ingress, moon_phase, or both)
 
+#### Observance Universe (3 NEW tools)
+- **`get_observances_on_date`** - Awareness days, fun days, commemorations
+  - Categories: awareness_day, fun_day, tech, seasonal, commemoration, cultural, religious, corporate
+  - Scope filtering: global, country, region, organization
+  - Importance scoring (0-1) and tag-based filtering
+
+- **`get_today_story`** - Curated highlights for today
+  - Personalized relevance scoring (importance + scope match + tag overlap)
+  - Returns 1-3 most relevant observances
+  - User context: region, interests, timezone
+
+- **`get_observances_calendar`** - Monthly observance calendar
+  - Month-wide observance planning
+  - Category and importance filtering
+  - UI calendar display support
+
 ### Design Philosophy
-- Treats astrology as **time structure**, not fortune-telling
+- Astrology as **time structure**, not fortune-telling
 - **Stateless architecture** - no database, all calculations on-demand
 - **Astronomy-backed** - JPL DE421 ephemeris (1900-2050)
 - **Deterministic & versioned** - astro_v1 model version for reproducibility
