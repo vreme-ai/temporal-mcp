@@ -2,7 +2,7 @@
 
 All notable changes to the Vreme Temporal MCP Server are documented here.
 
-## [1.8.2] - 2024-12-10
+## [1.8.2] - 2024-12-12
 
 ### 🚀 ASTROLOGY + OBSERVANCE UNIVERSE
 
