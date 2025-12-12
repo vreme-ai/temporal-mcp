@@ -2,6 +2,13 @@
 
 All notable changes to the Vreme Temporal MCP Server are documented here.
 
+## [1.8.3] - 2024-12-12
+
+### 🔧 Bug Fixes
+
+- Fixed duplicate `get_microseason_context` tool registration causing server crash
+- Added `skyfield==1.53` dependency to Python requirements.txt
+
 ## [1.8.2] - 2024-12-12
 
 ### 🚀 ASTROLOGY + OBSERVANCE UNIVERSE

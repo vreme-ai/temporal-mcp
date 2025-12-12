@@ -2416,7 +2416,7 @@ server.registerTool("get_observances_calendar", {
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("=== VREME MCP Server v1.8.2 ===");
+  console.error("=== VREME MCP Server v1.8.3 ===");
   console.error("Vreme Time Service MCP Server running");
   console.error(`API URL: ${VREME_API_URL}`);
   console.error("Available tools (51 total):");
