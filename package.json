@@ -1,7 +1,7 @@
 {
   "name": "@vreme/temporal-mcp",
-  "version": "1.8.2",
-  "description": "v1.8.2 - THE ULTIMATE TEMPORAL INTELLIGENCE SYSTEM FOR AI. 51 MCP tools: ASTROLOGY (Western zodiac signs, planet positions, aspects, Chinese zodiac animal/element cycles, sun ingresses, moon phases), time arithmetic, phrase resolution, temporal context snapshots, interval algebra, RRULE expansion, multi-calendar alignment, fuzzy time, observance universe (awareness days, fun days, tech holidays), environmental/planetary time (sunrise/sunset, day phases, seasons, microseasons). Personalized awareness adapts to YOUR cognitive rhythms. 247+ countries holiday database, 5 financial markets, business time intelligence, 31 cultural calendars, 300+ observances, astronomical events, prayer times. Astronomy-backed astrology as time structure. Privacy-first - all data stored locally in ~/.vreme/ (no backend). Works with Claude Desktop, Continue, Cline, and any MCP-compatible AI client.",
+  "version": "1.8.3",
+  "description": "v1.8.3 - THE ULTIMATE TEMPORAL INTELLIGENCE SYSTEM FOR AI. 51 MCP tools: ASTROLOGY (Western zodiac signs, planet positions, aspects, Chinese zodiac animal/element cycles, sun ingresses, moon phases), time arithmetic, phrase resolution, temporal context snapshots, interval algebra, RRULE expansion, multi-calendar alignment, fuzzy time, observance universe (awareness days, fun days, tech holidays), environmental/planetary time (sunrise/sunset, day phases, seasons, microseasons). Personalized awareness adapts to YOUR cognitive rhythms. 247+ countries holiday database, 5 financial markets, business time intelligence, 31 cultural calendars, 300+ observances, astronomical events, prayer times. Astronomy-backed astrology as time structure. Privacy-first - all data stored locally in ~/.vreme/ (no backend). Works with Claude Desktop, Continue, Cline, and any MCP-compatible AI client.",
   "main": "build/index.js",
   "type": "module",
   "bin": {
