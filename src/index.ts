@@ -312,7 +312,7 @@ server.registerTool("get_temporal_context", {
 });
 
 server.registerTool("get_current_time", {
-  description: "⏰ CURRENT TIME TOOL - USE THIS WHEN USER ASKS 'What time is it?', 'What's the time?', 'Current time?', or any variation asking for the current time. This tool automatically uses the user's system timezone (detected from their computer) and returns structured temporal data. NO PARAMETERS REQUIRED - just call this tool immediately when user asks for current time. Returns structured data: ISO datetime, timezone, day_of_week, date_string, time_string, time_of_day. LLM formats this into natural language response.",
+  description: "⏰🔴 CRITICAL: CALL THIS BEFORE WRITING ANY DATES IN CODE/DOCS/CHANGELOGS! Use when user asks 'What time is it?' OR when YOU need to write dates (YYYY-MM-DD format). ALWAYS check current date before creating version tags, CHANGELOG entries, git commit messages, or any timestamped content. Returns: ISO datetime, timezone, day_of_week, date_string (e.g., 'Thursday, December 12, 2024'), time_string, time_of_day. NO PARAMETERS REQUIRED. Prevents temporal bugs caused by using wrong dates. If you write '2024-12-10' but today is 2024-12-12, you've created a version control error.",
   inputSchema: {
     // No parameters - tool automatically detects system timezone
   },
