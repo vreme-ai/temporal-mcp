@@ -2339,10 +2339,108 @@ server.registerTool("get_astro_calendar", {
   };
 });
 
+// Observance Universe Tools
+server.registerTool("get_observances_on_date", {
+  description: "📅 OBSERVANCES ON DATE: Get awareness days, fun days, commemorations, and cultural observances for a specific date. Categories: awareness_day, fun_day, tech, seasonal, commemoration, cultural, religious, corporate.",
+  inputSchema: z.object({
+    date: z.string().describe("ISO 8601 date (YYYY-MM-DD)"),
+    timezone: z.string().optional().describe("IANA timezone for context"),
+    country: z.string().optional().describe("ISO country code (e.g., 'US')"),
+    categories: z.array(z.string()).optional().describe("Filter by categories"),
+    min_importance: z.number().optional().describe("Minimum importance score (0.0-1.0)"),
+    tags: z.array(z.string()).optional().describe("Filter by tags (any match)")
+  })
+}, async ({ date, timezone, country, categories, min_importance, tags }) => {
+  const requestBody: any = { date, timezone };
+  if (country || categories || min_importance || tags) {
+    requestBody.scope = country ? { country } : undefined;
+    requestBody.filters = {
+      categories,
+      min_importance: min_importance || 0.0,
+      tags
+    };
+  }
+
+  const response = await fetch(`${VREME_API_URL}/v1/observances/on_date`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(requestBody)
+  });
+
+  if (!response.ok) {
+    throw new Error(`Observance API error: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return {
+    content: [{ type: "text", text: JSON.stringify(data, null, 2) }]
+  };
+});
+
+server.registerTool("get_today_story", {
+  description: "🎯 TODAY'S STORY: Get curated highlights for today - most relevant observances based on user's region and interests. Returns 1-3 personalized observances with relevance scoring.",
+  inputSchema: z.object({
+    user_timezone: z.string().optional().describe("User's IANA timezone"),
+    user_region: z.string().optional().describe("User's country/region code"),
+    user_tags: z.array(z.string()).optional().describe("User's interest tags"),
+    max_items: z.number().optional().describe("Max highlights to return (1-10, default: 3)")
+  })
+}, async ({ user_timezone, user_region, user_tags, max_items }) => {
+  const response = await fetch(`${VREME_API_URL}/v1/observances/today_story`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      user_timezone,
+      user_region,
+      user_tags,
+      max_items: max_items || 3
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`Observance API error: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return {
+    content: [{ type: "text", text: JSON.stringify(data, null, 2) }]
+  };
+});
+
+server.registerTool("get_observances_calendar", {
+  description: "📆 OBSERVANCES CALENDAR: Get calendar view of observances for a specific month. Returns all observances by day for planning and UI calendar displays.",
+  inputSchema: z.object({
+    year: z.number().describe("Year"),
+    month: z.number().describe("Month (1-12)"),
+    country: z.string().optional().describe("ISO country code filter"),
+    categories: z.string().optional().describe("Comma-separated categories"),
+    min_importance: z.number().optional().describe("Minimum importance (0.0-1.0)")
+  })
+}, async ({ year, month, country, categories, min_importance }) => {
+  const params = new URLSearchParams({
+    year: year.toString(),
+    month: month.toString()
+  });
+  if (country) params.append("country", country);
+  if (categories) params.append("categories", categories);
+  if (min_importance !== undefined) params.append("min_importance", min_importance.toString());
+
+  const response = await fetch(`${VREME_API_URL}/v1/observances/calendar?${params.toString()}`);
+
+  if (!response.ok) {
+    throw new Error(`Observance API error: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return {
+    content: [{ type: "text", text: JSON.stringify(data, null, 2) }]
+  };
+});
+
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("=== VREME MCP Server v1.8.0 ===");
+  console.error("=== VREME MCP Server v1.8.2 ===");
   console.error("Vreme Time Service MCP Server running");
   console.error(`API URL: ${VREME_API_URL}`);
   console.error("Available tools (51 total):");

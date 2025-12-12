@@ -2,6 +2,59 @@
 
 All notable changes to the Vreme Temporal MCP Server are documented here.
 
+## [1.8.2] - 2024-12-10
+
+### 🚀 ASTROLOGY + OBSERVANCE UNIVERSE
+
+**7 NEW MCP TOOLS (51 total)** - Astronomy-backed astrology + cultural observances
+
+### Added
+
+#### Astrology Layer (4 NEW tools)
+- **`get_zodiac_context`** - Western zodiac signs, planet positions, aspects
+  - Sun, Moon, Mercury, Venus, Mars positions in tropical zodiac
+  - Aspect detection: conjunctions (0°), oppositions (180°), trines (120°), squares (90°), sextiles (60°)
+  - Astronomy-backed using Skyfield + JPL DE421 ephemeris
+  - Returns sign, degree in sign, element, modality, aspect orbs
+
+- **`get_chinese_zodiac`** - Chinese zodiac animal & element cycles
+  - 60-year sexagenary cycle: 12 animals × 10 elements with yin/yang
+  - Lunar year calculation (Rat, Ox, Tiger... Pig)
+  - Element: Wood, Fire, Earth, Metal, Water
+
+- **`get_astro_events`** - Sun ingresses & moon phases in time window
+  - Sun ingresses: when Sun enters new zodiac sign (12 per year)
+  - Moon phases: new moon, first quarter, full moon, last quarter
+  - Returns UTC times + event types
+
+- **`get_astro_calendar`** - Astrology calendar with local times
+  - Monthly/yearly astro event calendar
+  - Converts UTC to user's timezone
+  - Filters by event type (sun_ingress, moon_phase, or both)
+
+#### Observance Universe (3 NEW tools)
+- **`get_observances_on_date`** - Awareness days, fun days, commemorations
+  - Categories: awareness_day, fun_day, tech, seasonal, commemoration, cultural, religious, corporate
+  - Scope filtering: global, country, region, organization
+  - Importance scoring (0-1) and tag-based filtering
+
+- **`get_today_story`** - Curated highlights for today
+  - Personalized relevance scoring (importance + scope match + tag overlap)
+  - Returns 1-3 most relevant observances
+  - User context: region, interests, timezone
+
+- **`get_observances_calendar`** - Monthly observance calendar
+  - Month-wide observance planning
+  - Category and importance filtering
+  - UI calendar display support
+
+### Design Philosophy
+- Astrology as **time structure**, not fortune-telling
+- **Stateless architecture** - no database, all calculations on-demand
+- **Astronomy-backed** - JPL DE421 ephemeris (1900-2050)
+- **Deterministic & versioned** - astro_v1 model version for reproducibility
+- **Privacy-first** - no data storage, pure computation
+
 ## [1.7.0 + Phase A] - 2024-12-09
 
 ### 🚀 TEMPORAL OS EXTENSIONS - Phase A: Clock & Calendar Completion

@@ -6,13 +6,28 @@
 
 # Vreme Temporal MCP Server
 
-**v1.7.0 + Phase A - THE ULTIMATE TEMPORAL INTELLIGENCE SYSTEM FOR AI**
+**v1.8.2 - THE ULTIMATE TEMPORAL INTELLIGENCE SYSTEM FOR AI**
 
-MCP server providing temporal intelligence - timezone conversions, 31 cultural calendars, astronomical events, prayer times, **247+ countries' holiday data**, **5 financial markets**, business time calculations, **personalized temporal awareness**, and **comprehensive temporal context system**.
+MCP server providing temporal intelligence - **ASTROLOGY** (Western zodiac, Chinese zodiac, planet positions, aspects, sun ingresses, moon phases), **OBSERVANCE UNIVERSE** (awareness days, fun days, tech holidays), timezone conversions, 31 cultural calendars, astronomical events, prayer times, **247+ countries' holiday data**, **5 financial markets**, business time calculations, **personalized temporal awareness**, and **comprehensive temporal context system**.
 
-## 🚀 What's New in v1.7.0 + Phase A
+## 🚀 What's New in v1.8.2
 
-**MAJOR RELEASE - 20 NEW MCP TOOLS**
+**MAJOR RELEASE - 51 MCP TOOLS TOTAL**
+
+### v1.8.2 Astrology + Observances (7 NEW tools)
+
+#### Astrology Layer (4 tools)
+- ♈ **`get_zodiac_context`** - Western zodiac signs, planet positions, aspects
+- 🐉 **`get_chinese_zodiac`** - Chinese zodiac animal & element cycles
+- 🌙 **`get_astro_events`** - Sun ingresses & moon phases in time window
+- 📅 **`get_astro_calendar`** - Astrology calendar with local times
+
+#### Observance Universe (3 tools)
+- 📅 **`get_observances_on_date`** - Awareness days, fun days, commemorations
+- 🎯 **`get_today_story`** - Curated highlights personalized to user
+- 📆 **`get_observances_calendar`** - Monthly observance calendar
+
+## Previous Releases
 
 ### v1.7.0 Temporal Context System (11 NEW tools)
 
