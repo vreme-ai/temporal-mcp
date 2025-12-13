@@ -2,6 +2,13 @@
 
 All notable changes to the Vreme Temporal MCP Server are documented here.
 
+## [1.8.5] - 2024-12-13
+
+### 🔧 Docs Cleanup
+
+- Documentation cleanup
+- Version sync across all code bases 
+
 ## [1.8.4] - 2024-12-12
 
 ### 🔧 Design Principle Compliance

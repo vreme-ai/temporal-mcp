@@ -6,13 +6,16 @@
 
 # Vreme Temporal MCP Server
 
-**v1.8.4 - THE ULTIMATE TEMPORAL INTELLIGENCE SYSTEM FOR AI**
+**v1.8.5 - THE ULTIMATE TEMPORAL INTELLIGENCE SYSTEM FOR AI**
 
 MCP server providing temporal intelligence - **ASTROLOGY** (Western zodiac, Chinese zodiac, planet positions, aspects, sun ingresses, moon phases), **OBSERVANCE UNIVERSE** (awareness days, fun days, tech holidays), timezone conversions, 31 cultural calendars, astronomical events, prayer times, **247+ countries' holiday data**, **5 financial markets**, business time calculations, **personalized temporal awareness**, and **comprehensive temporal context system**.
 
-## 🚀 What's New in v1.8.4
+## 🚀 What's New in v1.8.5
 
-**BUG FIX RELEASE - 51 MCP TOOLS TOTAL**
+**MAINTENANCE RELEASE**
+
+### v1.8.5 Documentation cleanup & version sync across codebases 
+
 
 ### v1.8.4 Design Principle Compliance
 - ✅ Fixed `generate_prompt_prefix()` to return structured data instead of generated text
@@ -702,7 +705,7 @@ AI Client (Claude Desktop / VS Code / Continue / Cline)
     ↓ (MCP Protocol)
 @vreme/temporal-mcp
     ↓ (HTTPS)
-api.vreme.ai
+vreme.ai API
     ↓
 Temporal Intelligence Engine
 ```
