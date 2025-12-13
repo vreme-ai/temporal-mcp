@@ -6,13 +6,20 @@
 
 # Vreme Temporal MCP Server
 
-**v1.8.5 - THE ULTIMATE TEMPORAL INTELLIGENCE SYSTEM FOR AI**
+**v1.9.0 - THE ULTIMATE TEMPORAL INTELLIGENCE SYSTEM FOR AI**
 
-MCP server providing temporal intelligence - **ASTROLOGY** (Western zodiac, Chinese zodiac, planet positions, aspects, sun ingresses, moon phases), **OBSERVANCE UNIVERSE** (awareness days, fun days, tech holidays), timezone conversions, 31 cultural calendars, astronomical events, prayer times, **247+ countries' holiday data**, **5 financial markets**, business time calculations, **personalized temporal awareness**, and **comprehensive temporal context system**.
+MCP server providing temporal intelligence - **ASTROLOGY** (Western zodiac, Chinese zodiac, planet positions, aspects, sun ingresses, moon phases), **OBSERVANCE UNIVERSE** (awareness days, fun days, tech holidays), timezone conversions, 31 cultural calendars, astronomical events, prayer times, **247+ countries' holiday data**, **5 financial markets**, business time calculations, and **comprehensive temporal context system**.
 
-## 🚀 What's New in v1.8.5
+## 🚀 What's New in v1.9.0
 
-**MAINTENANCE RELEASE**
+**BREAKING CHANGE: Removed Behavior Context Tracking**
+
+### v1.9.0 Behavior Context Removal
+- 🗑️ **Removed 3 tools:** `get_user_cognitive_state`, `analyze_work_patterns`, `predict_user_availability`
+- 📉 **Tool count:** 51 → 48 tools
+- 🧹 Removed all behavior tracking, cognitive state analysis, and personalized awareness features
+- 📝 Updated all documentation and marketing language
+- 💾 File `~/.vreme/behavior-context.json` is now obsolete (safe to delete)
 
 ### v1.8.5 Documentation cleanup & version sync across codebases 
 
@@ -32,7 +39,7 @@ MCP server providing temporal intelligence - **ASTROLOGY** (Western zodiac, Chin
 
 #### Observance Universe (3 tools)
 - 📅 **`get_observances_on_date`** - Awareness days, fun days, commemorations
-- 🎯 **`get_today_story`** - Curated highlights personalized to user
+- 🎯 **`get_today_story`** - Curated highlights for today
 - 📆 **`get_observances_calendar`** - Monthly observance calendar
 
 ## Previous Releases
@@ -153,7 +160,6 @@ MCP server providing temporal intelligence - **ASTROLOGY** (Western zodiac, Chin
 - **Powered by python-holidays v0.86+** - Community-maintained, accurate data
 
 ### ⏰ Temporal Intelligence
-- **Personalized Awareness** - Adapts to YOUR cognitive rhythms (sleep/wake, work bursts, lunch breaks)
 - **Natural language queries** - "What time is it in Tokyo?", "Is it Ramadan?", "Can I call Berlin now?"
 - **200+ timezones** - Complete pytz timezone database with DST handling
 - **Astronomical events** - Sunrise, sunset, moon phases, twilight times
@@ -163,8 +169,7 @@ MCP server providing temporal intelligence - **ASTROLOGY** (Western zodiac, Chin
 - **Temporal Density Scoring** - Quantify how "significant" any date is culturally (0-100)
 - **Business Time Intelligence** - Calculate business days/hours accounting for country-specific weekends and holidays
 - **Historical Temporal Context** - Get comprehensive temporal snapshot for any historical date
-- **Context Switch Detection** - 30-minute gaps automatically detect natural cognitive boundaries
-- **Privacy-First** - All behavioral data stored locally in `~/.vreme/` (no backend)
+- **Privacy-First** - All context data stored locally in `~/.vreme/` (no backend)
 
 ### 📅 Cultural Calendars (32 Systems)
 
@@ -362,7 +367,6 @@ Add to your Cline configuration following their MCP setup guide.
 - Last global activity timestamp
 - Days since last activity
 - Context switch detection (gaps > 1 hour)
-- Cognitive state indicators (late night, early morning, boundary detection)
 
 **Inputs:**
 - None required - automatically provides full temporal context

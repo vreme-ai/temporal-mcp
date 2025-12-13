@@ -76,15 +76,6 @@ This document lists all 49 MCP (Model Context Protocol) tools available in the V
 
 ## User Analysis
 
-### get_user_cognitive_state
-🧠 USER COGNITIVE STATE: Understand the user's current work session and cognitive state. Returns: current session info (how long they've been working, interaction count), whether this is a typical work time for them based on historical patterns, and recommendations for task complexity. Use this to adapt your suggestions - deep work sessions are good for complex tasks, short sessions better for quick wins.
-
-### analyze_work_patterns
-📊 WORK PATTERN ANALYSIS: Analyze the user's historical work patterns to understand their typical schedule, peak productivity hours, and session characteristics. Returns statistics about: typical work hours, average session lengths, common break times, sleep/wake patterns. Use this to understand when the user is most productive and adapt your interactions accordingly.
-
-### predict_user_availability
-🔮 AVAILABILITY PREDICTION: Predict when the user will likely be back based on current gap and historical patterns. If user is away, analyzes the gap to determine if it's likely a lunch break, sleep, or just a short break. Returns probability estimates and expected return time. Use this to decide whether to provide immediate responses or save complex suggestions for when they return.
-
 ---
 
 ## Advanced Temporal Processing
@@ -190,7 +181,7 @@ This document lists all 49 MCP (Model Context Protocol) tools available in the V
 📅 OBSERVANCES ON DATE: Get awareness days, fun days, commemorations, and cultural observances for a specific date. Categories: awareness_day, fun_day, tech, seasonal, commemoration, cultural, religious, corporate.
 
 ### get_today_story
-🎯 TODAY'S STORY: Get curated highlights for today - most relevant observances based on user's region and interests. Returns 1-3 personalized observances with relevance scoring.
+🎯 TODAY'S STORY: Get curated highlights for today - most relevant observances based on user's region and interests. Returns 1-3 observances with relevance scoring.
 
 ### get_observances_calendar
 📆 OBSERVANCES CALENDAR: Get calendar view of observances for a specific month. Returns all observances by day for planning and UI calendar displays.
@@ -203,7 +194,7 @@ This MCP server provides **49 tools** organized into 8 main categories:
 
 1. **Core Temporal Tools** (7 tools): Basic time and date operations
 2. **Holiday and Business Time** (10 tools): Holiday checking, business day calculations, market holidays
-3. **User Analysis** (3 tools): Cognitive state, work patterns, availability prediction
+3. 
 4. **Advanced Temporal Processing** (13 tools): Phrase resolution, arithmetic, conflict checking, sacred time analysis
 5. **Calendar and Recurrence** (4 tools): Calendar alignment, recurrence expansion, partial dates
 6. **Fuzzy Time** (3 tools): Uncertain time representations

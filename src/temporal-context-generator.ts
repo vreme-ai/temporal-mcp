@@ -30,12 +30,11 @@ export class TemporalContextGenerator {
     );
     const daysSinceLastActivity = TemporalContextManager.getDaysSinceLastActivity();
     const contextSwitchDetected = TemporalContextManager.detectContextSwitch();
-    
-    // Cognitive state
+
+    // Time of day state
     const isLateNight = hour >= 23 || hour < 6;
     const isEarlyMorning = hour < 6;
-    const cognitiveDayBoundary = hour < 6; // Elastic Tomorrow zone
-    
+
     // Temporal grounding
     const temporalGrounding = this.generateTemporalGrounding(now, timezone);
     
@@ -58,12 +57,11 @@ export class TemporalContextGenerator {
       last_global_activity: lastGlobalActivity.toISOString(),
       days_since_last_activity: Math.round(daysSinceLastActivity * 10) / 10,
       context_switch_detected: contextSwitchDetected,
-      
-      // Cognitive state
+
+      // Time of day state
       is_late_night: isLateNight,
       is_early_morning: isEarlyMorning,
-      cognitive_day_boundary: cognitiveDayBoundary,
-      
+
       // Temporal grounding
       temporal_grounding: temporalGrounding
     };
