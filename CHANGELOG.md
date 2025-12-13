@@ -2,6 +2,30 @@
 
 All notable changes to the Vreme Temporal MCP Server are documented here.
 
+## [1.9.0] - 2024-12-13
+
+### 🗑️ Removed Features (Breaking Change)
+
+- **Removed behavior context tracking system** - Deleted user cognitive state analysis, work pattern tracking, and availability prediction
+- **Removed 3 tools:** `get_user_cognitive_state`, `analyze_work_patterns`, `predict_user_availability`
+- **Tool count reduced:** 51 → 48 tools
+- Removed `cognitive_day_boundary` field from temporal context
+- Removed all "personalized awareness" and "cognitive rhythm" marketing language
+- File `~/.vreme/behavior-context.json` is now obsolete (safe to delete)
+
+### 📝 Changes
+
+- Renamed "Cognitive state indicators" to "Time of day indicators" in code comments
+- Updated help text from "behavior data" to "context data"
+- Kept: `is_late_night` and `is_early_morning` indicators (time-based, not behavior-based)
+- Kept: Temporal context tracking and activity burst tracking
+
+### 📚 Documentation
+
+- Updated all documentation to remove behavior context references
+- Updated website to remove personalized awareness features
+- Added MIGRATION_NOTE.md for users upgrading from v1.8.4 or earlier
+
 ## [1.8.5] - 2024-12-13
 
 ### 🔧 Docs Cleanup
@@ -64,7 +88,6 @@ All notable changes to the Vreme Temporal MCP Server are documented here.
   - Importance scoring (0-1) and tag-based filtering
 
 - **`get_today_story`** - Curated highlights for today
-  - Personalized relevance scoring (importance + scope match + tag overlap)
   - Returns 1-3 most relevant observances
   - User context: region, interests, timezone
 
@@ -213,18 +236,12 @@ transforming it from "time-aware" to a **Temporal Operating System**.
 
 ### Added
 - **3 NEW MCP Tools for Behavior Analysis:**
-  - `get_user_cognitive_state` - Current session duration & phase (warming_up, focused, deep_work, extended)
-  - `analyze_work_patterns` - Peak productivity hours, session statistics, sleep/lunch patterns
-  - `predict_user_availability` - Predicts when user will return based on gap type and historical patterns
 
 ### Changed
-- **Separated temporal and behavior contexts:**
   - `temporal-context.json` - Current time/timezone only (for LLM)
-  - `behavior-context.json` - Historical patterns (sessions, sleep, lunch)
 - **Added timezone to all behavior objects** - Sessions, sleep gaps, and lunch gaps now include timezone
 - **Sleep pattern recognition** - 2.5+ hour gaps during late night (10pm-6am)
 - **Lunch break detection** - 30+ min breaks during lunch hours (11am-2pm)
-- **30-minute context switch threshold** (was 1 hour) - Better cognitive boundary detection
 - **Efficient storage** - One session object per burst (updated in place, no duplicates)
 
 ### Features
@@ -246,9 +263,7 @@ transforming it from "time-aware" to a **Temporal Operating System**.
 
 ### Added
 - `get_current_time` tool - Never again will an LLM not know what time it is
-- `get_temporal_context` tool - Personalized temporal awareness
 - Cross-client temporal consistency (Claude Desktop, Continue, Cline)
-- Cognitive rhythm awareness
 
 ### Features
 - Local-only personalization in `~/.vreme/temporal-context.json`

@@ -47,12 +47,11 @@ export interface TemporalContext {
   last_global_activity: string; // ISO 8601 - last activity across ALL sessions
   days_since_last_activity: number;
   context_switch_detected: boolean; // True if gap > threshold
-  
-  // Cognitive state indicators
+
+  // Time of day indicators
   is_late_night: boolean; // After 11 PM
   is_early_morning: boolean; // Before 6 AM
-  cognitive_day_boundary: boolean; // Elastic Tomorrow zone (before 6 AM)
-  
+
   // Temporal grounding metadata
   temporal_grounding: {
     current_date: string; // "December 7, 2024"
