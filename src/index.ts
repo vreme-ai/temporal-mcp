@@ -10,7 +10,6 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z } from "zod";
 import { ActivityBurst } from "./temporal-context.js";
 import { TemporalContextManager } from "./temporal-context-manager.js";
-import { TemporalContextGenerator } from "./temporal-context-generator.js";
 import { BehaviorContextManager } from "./behavior-context-manager.js";
 
 // API Configuration
@@ -202,7 +201,7 @@ function formatResponse(response: QueryResponse): string {
 
 const server = new McpServer({
   name: "vreme-time-service",
-  version: "1.6.2",
+  version: "1.8.5",
 });
 
 // Configuration
@@ -2416,13 +2415,13 @@ server.registerTool("get_observances_calendar", {
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("=== VREME MCP Server v1.8.4 ===");
+  console.error("=== VREME MCP Server v1.8.5 ===");
   console.error("Vreme Time Service MCP Server running");
   console.error(`API URL: ${VREME_API_URL}`);
   console.error("Available tools (51 total):");
   console.error("  🧠 get_temporal_context - AUTO-CALL at conversation start for temporal awareness");
   console.error("  ⏰ get_current_time - Use for 'What time is it?' queries");
-  console.error("  🧠 Personalized Awareness (NEW in v1.6.2):");
+  console.error("  🧠 Personalized Awareness:");
   console.error("     - get_user_cognitive_state - Current session + cognitive state");
   console.error("     - analyze_work_patterns - Historical work patterns & peak hours");
   console.error("     - predict_user_availability - When user will likely return");
