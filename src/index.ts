@@ -200,7 +200,7 @@ function formatResponse(response: QueryResponse): string {
 
 const server = new McpServer({
   name: "vreme-time-service",
-  version: "1.9.0",
+  version: "1.9.2",
 });
 
 // Configuration
@@ -1223,6 +1223,174 @@ server.registerTool("execute_time_arithmetic", {
   }
 });
 
+// ============================================================
+// v1.9.2: Duration & Period Intelligence
+// ============================================================
+
+server.registerTool("calculate_duration", {
+  description: "DURATION CALCULATOR: Calculate structured duration between two timestamps. Returns total_seconds, days, hours, minutes, seconds as separate numeric fields. Use for calculating time differences, elapsed time, or duration between events. Returns structured JSON data only (no formatted strings).",
+  inputSchema: z.object({
+    start_time: z.string().describe("ISO 8601 datetime string for start time (e.g., '2024-12-20T10:00:00-05:00')"),
+    end_time: z.string().describe("ISO 8601 datetime string for end time (e.g., '2024-12-20T15:30:00-05:00')"),
+    timezone: z.string().optional().describe("IANA timezone (e.g., 'America/New_York') for naive datetimes")
+  })
+}, async ({ start_time, end_time, timezone }) => {
+  updateActivityTracking();
+  try {
+    if (!start_time || !end_time) {
+      throw new Error("start_time and end_time are required");
+    }
+
+    const response = await fetch(`${VREME_API_URL}/v1/time/duration/calculate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ start_time, end_time, timezone })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`API request failed: ${response.status} ${errorText}`);
+    }
+
+    const result = await response.json();
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
+  }
+});
+
+server.registerTool("calculate_period", {
+  description: "PERIOD CALCULATOR: Calculate weeks, months, quarters, or years between two dates. Returns structured data with days, weeks, months, quarters, and years as separate numeric fields. Handles leap years and month boundaries accurately. Returns structured JSON data only (no formatted strings).",
+  inputSchema: z.object({
+    start_date: z.string().describe("Start date in YYYY-MM-DD format (e.g., '2024-01-01')"),
+    end_date: z.string().describe("End date in YYYY-MM-DD format (e.g., '2024-12-31')"),
+    unit: z.enum(["days", "weeks", "months", "quarters", "years"]).optional().describe("Primary unit to return (defaults to 'days')")
+  })
+}, async ({ start_date, end_date, unit }) => {
+  updateActivityTracking();
+  try {
+    if (!start_date || !end_date) {
+      throw new Error("start_date and end_date are required");
+    }
+
+    const response = await fetch(`${VREME_API_URL}/v1/time/duration/period`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ start_date, end_date, unit: unit || "days" })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`API request failed: ${response.status} ${errorText}`);
+    }
+
+    const result = await response.json();
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
+  }
+});
+
+server.registerTool("age_from_birthdate", {
+  description: "AGE CALCULATOR: Calculate age as structured data from birthdate. Returns years, months, days, and total_days as separate numeric fields. Handles leap years and month boundaries accurately. Returns structured JSON data only (no formatted strings).",
+  inputSchema: z.object({
+    birthdate: z.string().describe("Birthdate in YYYY-MM-DD format (e.g., '1990-05-15')"),
+    reference_date: z.string().optional().describe("Optional reference date in YYYY-MM-DD format (defaults to today)")
+  })
+}, async ({ birthdate, reference_date }) => {
+  updateActivityTracking();
+  try {
+    if (!birthdate) {
+      throw new Error("birthdate is required");
+    }
+
+    const response = await fetch(`${VREME_API_URL}/v1/time/duration/age`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ birthdate, reference_date })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`API request failed: ${response.status} ${errorText}`);
+    }
+
+    const result = await response.json();
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
+  }
+});
+
+server.registerTool("time_until", {
+  description: "TIME UNTIL: Calculate time until a future timestamp. Returns structured duration data (total_seconds, days, hours, minutes, seconds) and indicates if the time is in the past. Returns structured JSON data only (no formatted strings).",
+  inputSchema: z.object({
+    future_time: z.string().describe("ISO 8601 datetime string for future time (e.g., '2024-12-25T00:00:00-05:00')"),
+    current_time: z.string().optional().describe("Optional current time in ISO 8601 format (defaults to now)"),
+    timezone: z.string().optional().describe("IANA timezone (e.g., 'America/New_York')")
+  })
+}, async ({ future_time, current_time, timezone }) => {
+  updateActivityTracking();
+  try {
+    if (!future_time) {
+      throw new Error("future_time is required");
+    }
+
+    const response = await fetch(`${VREME_API_URL}/v1/time/duration/until`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ future_time, current_time, timezone })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`API request failed: ${response.status} ${errorText}`);
+    }
+
+    const result = await response.json();
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
+  }
+});
+
+server.registerTool("time_since", {
+  description: "TIME SINCE: Calculate time since a past timestamp. Returns structured duration data (total_seconds, days, hours, minutes, seconds) and indicates if the time is in the future. Returns structured JSON data only (no formatted strings).",
+  inputSchema: z.object({
+    past_time: z.string().describe("ISO 8601 datetime string for past time (e.g., '2024-12-01T10:00:00-05:00')"),
+    current_time: z.string().optional().describe("Optional current time in ISO 8601 format (defaults to now)"),
+    timezone: z.string().optional().describe("IANA timezone (e.g., 'America/New_York')")
+  })
+}, async ({ past_time, current_time, timezone }) => {
+  updateActivityTracking();
+  try {
+    if (!past_time) {
+      throw new Error("past_time is required");
+    }
+
+    const response = await fetch(`${VREME_API_URL}/v1/time/duration/since`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ past_time, current_time, timezone })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`API request failed: ${response.status} ${errorText}`);
+    }
+
+    const result = await response.json();
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
+  }
+});
+
 server.registerTool("resolve_temporal_phrase", {
   description: "🗣️ TEMPORAL PHRASE RESOLVER: Convert natural language phrases like 'tomorrow evening', 'end of week', 'early next week' to concrete time windows. Returns canonical window with start/end times, confidence score (0-1), and alternative interpretations. Context-aware for planning vs casual conversation.",
   inputSchema: z.object({
@@ -2112,7 +2280,7 @@ async function main() {
   console.error("=== VREME MCP Server v1.9.0 ===");
   console.error("Vreme Time Service MCP Server running");
   console.error(`API URL: ${VREME_API_URL}`);
-  console.error("Available tools (48 total):");
+  console.error("Available tools (53 total):");
   console.error("  🧠 get_temporal_context - AUTO-CALL at conversation start for temporal awareness");
   console.error("  ⏰ get_current_time - Use for 'What time is it?' queries");
   console.error("  📅 Temporal Tools:");
@@ -2126,6 +2294,13 @@ async function main() {
   console.error("");
   console.error("  🆕 v1.7.0 Temporal Context System (11 tools):");
   console.error("     - execute_time_arithmetic, resolve_temporal_phrase, compare_temporal_phrases");
+  console.error("");
+  console.error("  ⏱️ v1.9.2 Duration & Period Intelligence (5 NEW tools):");
+  console.error("     - calculate_duration - Structured duration between timestamps");
+  console.error("     - calculate_period - Weeks, months, quarters, years between dates");
+  console.error("     - age_from_birthdate - Age calculation as structured data");
+  console.error("     - time_until - Time until future timestamp");
+  console.error("     - time_since - Time since past timestamp");
   console.error("     - export_temporal_context_snapshot, generate_temporal_prompt_prefix");
   console.error("     - check_good_moment_for_activity, check_temporal_conflicts, explain_time_behavior");
   console.error("     - analyze_global_sacred_time, get_weekly_sacred_rhythm, get_microseason_context");
