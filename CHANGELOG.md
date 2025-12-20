@@ -2,9 +2,74 @@
 
 All notable changes to the Vreme Temporal MCP Server are documented here.
 
+## [1.9.2] - 2024-12-20
+
+### Duration & Period Intelligence
+
+**5 NEW MCP TOOLS (53 total)** - Structured duration and period calculations
+
+### Added
+
+#### Duration & Period Tools (5 NEW tools)
+- **`calculate_duration`** - Calculate structured duration between two timestamps
+  - Returns total_seconds, days, hours, minutes, seconds as separate numeric fields
+  - Handles timezone-aware calculations
+  - Use for calculating time differences, elapsed time, or duration between events
+
+- **`calculate_period`** - Calculate weeks, months, quarters, or years between dates
+  - Returns structured data with days, weeks, months, quarters, and years
+  - Handles leap years and month boundaries accurately
+  - Supports all period types: days, weeks, months, quarters, years
+
+- **`age_from_birthdate`** - Calculate age as structured data from birthdate
+  - Returns years, months, days, and total_days as separate numeric fields
+  - Handles leap years and month boundaries accurately
+  - Optional reference date support (defaults to today)
+
+- **`time_until`** - Calculate time until a future timestamp
+  - Returns structured duration data (total_seconds, days, hours, minutes, seconds)
+  - Indicates if the time is in the past
+  - Optional current_time parameter (defaults to now)
+
+- **`time_since`** - Calculate time since a past timestamp
+  - Returns structured duration data (total_seconds, days, hours, minutes, seconds)
+  - Indicates if the time is in the future
+  - Optional current_time parameter (defaults to now)
+
+### Design Philosophy
+
+All new tools follow Vreme's data-first architecture:
+- **Structured JSON only** - No formatted strings, LLM formats as needed
+- **Pure computational facts** - No opinions or suggestions
+- **Stateless operations** - Fast, scalable, no storage
+- **Authoritative calculations** - Accurate handling of edge cases (leap years, DST, month boundaries)
+
+### Changed
+
+- **Total MCP tools:** 48 (was 48) → **+5 new tools = 53 total**
+- **Python service:** Added DurationCalculator engine module
+- **Python service:** Added 5 new endpoints at `/v1/time/duration/*`
+- **MCP server:** Updated startup message with v1.9.2 tools
+
+### Documentation
+
+- Updated README.md with new tools in Duration & Period category
+- Updated package.json description (48 → 53 tools)
+- Updated Python service README with new endpoints
+
+## [1.9.1] - 2024-12-20
+
+### Documentation
+
+- Professional documentation cleanup across all files
+- Removed emojis from README.md, MCP_TOOLS_REFERENCE.md, and CHANGELOG.md
+- Streamlined README structure and removed marketing language
+- Updated package.json description to be concise and professional
+- Enhanced package.json with bugs, engines, and author metadata fields
+
 ## [1.9.0] - 2024-12-13
 
-### 🗑️ Removed Features (Breaking Change)
+### Removed Features (Breaking Change)
 
 - **Removed behavior context tracking system** - Deleted user cognitive state analysis, work pattern tracking, and availability prediction
 - **Removed 3 tools:** `get_user_cognitive_state`, `analyze_work_patterns`, `predict_user_availability`
@@ -13,14 +78,14 @@ All notable changes to the Vreme Temporal MCP Server are documented here.
 - Removed all "personalized awareness" and "cognitive rhythm" marketing language
 - File `~/.vreme/behavior-context.json` is now obsolete (safe to delete)
 
-### 📝 Changes
+### Changes
 
 - Renamed "Cognitive state indicators" to "Time of day indicators" in code comments
 - Updated help text from "behavior data" to "context data"
 - Kept: `is_late_night` and `is_early_morning` indicators (time-based, not behavior-based)
 - Kept: Temporal context tracking and activity burst tracking
 
-### 📚 Documentation
+### Documentation
 
 - Updated all documentation to remove behavior context references
 - Updated website to remove personalized awareness features
@@ -28,14 +93,14 @@ All notable changes to the Vreme Temporal MCP Server are documented here.
 
 ## [1.8.5] - 2024-12-13
 
-### 🔧 Docs Cleanup
+### Docs Cleanup
 
 - Documentation cleanup
 - Version sync across all code bases 
 
 ## [1.8.4] - 2024-12-12
 
-### 🔧 Design Principle Compliance
+### Design Principle Compliance
 
 - **Fixed text generation violation** in `temporal_context_snapshot.py`
   - Refactored `generate_prompt_prefix()` to return structured data instead of generated text
@@ -46,14 +111,14 @@ All notable changes to the Vreme Temporal MCP Server are documented here.
 
 ## [1.8.3] - 2024-12-12
 
-### 🔧 Bug Fixes
+### Bug Fixes
 
 - Fixed duplicate `get_microseason_context` tool registration causing server crash
 - Added `skyfield==1.53` dependency to Python requirements.txt
 
 ## [1.8.2] - 2024-12-12
 
-### 🚀 ASTROLOGY + OBSERVANCE UNIVERSE
+### ASTROLOGY + OBSERVANCE UNIVERSE
 
 **7 NEW MCP TOOLS (51 total)** - Astronomy-backed astrology + cultural observances
 
@@ -105,7 +170,7 @@ All notable changes to the Vreme Temporal MCP Server are documented here.
 
 ## [1.7.0 + Phase A] - 2024-12-09
 
-### 🚀 TEMPORAL OS EXTENSIONS - Phase A: Clock & Calendar Completion
+### TEMPORAL OS EXTENSIONS - Phase A: Clock & Calendar Completion
 
 **9 NEW MCP TOOLS** - Mathematical foundation for temporal reasoning
 
@@ -212,12 +277,12 @@ All notable changes to the Vreme Temporal MCP Server are documented here.
 - Holiday awareness
 
 **After Phase A:**
-- ✨ Mathematical foundation for temporal reasoning
-- ✨ Set theory over time intervals
-- ✨ Scale-agnostic time representation
-- ✨ Recurrence pattern evaluation
-- ✨ Multi-calendar alignment
-- ✨ Explicit uncertainty representation
+- Mathematical foundation for temporal reasoning
+- Set theory over time intervals
+- Scale-agnostic time representation
+- Recurrence pattern evaluation
+- Multi-calendar alignment
+- Explicit uncertainty representation
 
 This establishes Vreme as having a **complete mathematical foundation** for temporal reasoning,
 transforming it from "time-aware" to a **Temporal Operating System**.

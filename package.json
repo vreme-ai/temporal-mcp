@@ -1,7 +1,7 @@
 {
   "name": "@vreme/temporal-mcp",
-  "version": "1.9.1",
-  "description": "MCP server providing temporal intelligence for AI: 48 tools for timezone conversions, 32 cultural calendars, 247+ country holidays, 5 financial markets, business time calculations, astronomical events, prayer times, and astrology. Works with Claude Desktop, VS Code, Continue, Cline, and any MCP-compatible client.",
+  "version": "1.9.2",
+  "description": "MCP server providing temporal intelligence for AI: 53 tools for timezone conversions, 32 cultural calendars, 247+ country holidays, 5 financial markets, business time calculations, astronomical events, prayer times, astrology, and duration/period calculations. Works with Claude Desktop, VS Code, Continue, Cline, and any MCP-compatible client.",
   "main": "build/index.js",
   "type": "module",
   "bin": {
@@ -82,12 +82,21 @@
     "stateless",
     "fast-api"
   ],
-  "author": "Vreme",
+  "author": {
+    "name": "Vreme",
+    "url": "https://vreme.ai"
+  },
   "license": "MIT",
   "homepage": "https://www.vreme.ai",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/vreme-ai/temporal-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/vreme-ai/temporal-mcp/issues"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.23.0",

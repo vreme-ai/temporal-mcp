@@ -6,7 +6,7 @@
 
 # Vreme Temporal MCP Server
 
-**v1.9.1**
+**v1.9.2**
 
 MCP server providing comprehensive temporal intelligence including timezone conversions, 32 cultural calendars, astronomical events, prayer times, 247+ country holiday data, 5 financial markets, business time calculations, astrology, and observance tracking.
 
@@ -15,17 +15,138 @@ MCP server providing comprehensive temporal intelligence including timezone conv
 
 ## Overview
 
-Vreme Temporal MCP Server provides 48 specialized tools for temporal intelligence, organized into 7 categories:
+Vreme Temporal MCP Server provides 53 specialized tools for temporal intelligence, organized into 8 categories:
 
 - **Core Temporal Tools** (7) - Time queries, prayer times, activity appropriateness
 - **Holiday & Business Time** (10) - 247+ countries, business day calculations
-- **Advanced Temporal Processing** (13) - Time arithmetic, phrase resolution, conflict checking
+- **Advanced Temporal Processing** (18) - Time arithmetic, phrase resolution, conflict checking, duration calculations
 - **Calendar & Recurrence** (4) - Multi-calendar alignment, RRULE expansion
 - **Fuzzy Time** (3) - Uncertain time representations
 - **Astronomical** (7) - Sunrise/sunset, zodiac, moon phases
 - **Observances & Cultural** (3) - Awareness days, tech holidays, commemorations
+- **Duration & Period** (5) - Duration calculations, period analysis, age calculations
 
-[Complete Tools Reference](MCP_TOOLS_REFERENCE.md)
+## Tools Reference
+
+### Core Temporal Tools
+
+**get_temporal_context** - Provides real-time temporal awareness. Call before every response to get current time, date, timezone, time of day, and activity tracking. No parameters required.
+
+**get_current_time** - Get current time, date, and timezone information. Use when user asks 'What time is it?' or when writing dates in code/docs/changelogs. Returns ISO datetime, timezone, day_of_week, date_string, time_string, time_of_day. No parameters required.
+
+**query_time** - Natural language queries about time, calendars, and observances. Use for: 'What time is it in Tokyo?', 'When is Ramadan?', 'Is it Diwali?', 'What's the moon phase?'. Returns rich context including calendars, astronomical events, and cultural observances.
+
+**query_prayer_times** - Get precise Islamic prayer times (Salah/Namaz) for any location. Returns all 5 daily prayers (Fajr, Dhuhr, Asr, Maghrib, Isha), next prayer countdown, and Qibla direction to Mecca.
+
+**check_activity_appropriateness** - Check if it's appropriate to call/work/meet with someone right now. Considers time of day, cultural observances (Shabbat, Ramadan fasting), religious work restrictions, and local customs across calendar systems.
+
+**analyze_temporal_context** - Get comprehensive analysis of a specific date including all calendar representations, cultural observances, astronomical events, business context, seasonal info, and temporal density score (0-100 significance).
+
+**compare_dates** - Compare two dates to understand temporal distance and significance. Returns time difference, observances on each date, shared observances, and which is more culturally significant.
+
+### Holiday and Business Time
+
+**calculate_business_time** - Arithmetic with business days/hours, accounting for weekends and holidays. Operations: add_days, days_between, hours_between, is_working_day.
+
+**list_holiday_countries** - List all 247+ countries with holiday data support. Returns country codes and names.
+
+**get_country_holidays** - Get all holidays for a country in a specific year. Returns every holiday with dates, names, and categories (PUBLIC, BANK, SCHOOL, OPTIONAL). Can filter by categories. Fast: <30ms.
+
+**check_holiday** - Check if a date is a PUBLIC holiday (government closure) in a country. Returns holiday name if yes, or null if no. Fastest holiday tool (<10ms).
+
+**list_financial_markets_holidays** - List all 5 supported financial markets with trading holiday calendars. Returns: XNYS (NYSE), XNSE (NSE India), BVMF (Brazil), XECB (ECB TARGET2), IFEU (ICE Futures Europe).
+
+**get_market_holidays** - Get all trading holidays when a financial market is closed. Use for: 'When is NYSE closed in 2024?', 'What are NSE India trading holidays?'. Markets: XNYS, XNSE, BVMF, XECB, IFEU. Fast: <20ms.
+
+**check_business_day** - Check if a date is a working day (not holiday AND not weekend). Returns Yes/No with detailed reason. Prefer this over check_holiday when user asks about 'business day' or 'working day'. Fast: <10ms.
+
+**validate_date** - Validate if a date is valid (e.g., catch Feb 30, Month 13). Returns detailed errors and smart suggestions for fixes. Checks leap years, month boundaries, etc. Fast: <5ms.
+
+**add_business_days_detailed** - Add/subtract business days and get detailed metadata about what was excluded. Shows weekends skipped, holidays skipped, calendar span. Fast: <20ms.
+
+**resolve_relative_date** - Convert expressions like 'next Monday', 'tomorrow', 'in 3 days' to actual dates. Uses simple, documented rules. Supports 'Elastic Tomorrow' for night coders (opt-in).
+
+### Advanced Temporal Processing
+
+**execute_time_arithmetic** - Execute precise date/time math with business rules. Supports operations: add, subtract, set_time, set_date. Handles business_days with regional holiday calendars. Returns step-by-step execution trace with deterministic hashing.
+
+**resolve_temporal_phrase** - Convert natural language phrases like 'tomorrow evening', 'end of week', 'early next week' to concrete time windows. Returns canonical window with start/end times, confidence score (0-1), and alternative interpretations.
+
+**compare_temporal_phrases** - Compare two temporal phrases to analyze their relationship. Returns time difference, overlap analysis, which is earlier/later, and human-readable comparison.
+
+**export_temporal_context_snapshot** - Export portable temporal context for Multi-LLM systems. Returns TemporalContextSnapshotV1 schema including current time, calendars, upcoming events, rhythm fingerprint, and optional artifacts.
+
+**generate_temporal_prompt_prefix** - Convert temporal context snapshot to concise LLM-ready prompt prefix. Configurable max lines (default: 20). Optimized for system prompts.
+
+**check_good_moment_for_activity** - Check if now is a good moment for activity. Activities: deep_work, financial_decision, hard_feedback, creative_play, exercise. Returns yes/no, score (0-1), reasons, and suggested alternative time.
+
+**check_temporal_conflicts** - Analyze events for conflicts with holidays, weekends, sleep hours, work restrictions. Returns conflict analysis per event, overall risk level, summary. Multi-region holiday checking and sleep pattern analysis.
+
+**explain_time_behavior** - Get simple explanations for complex time concepts. Topics: dst_transition (DST changes), business_days (how they work), timezone_difference (between two zones). Returns title, explanation, and key points.
+
+**analyze_global_sacred_time** - Multi-region sacred time analysis for product launches, webinars, maintenance windows. Returns avoid windows (Ramadan, religious holidays), preferred windows. Supports religions: islam, christian, hindu, buddhist.
+
+**get_weekly_sacred_rhythm** - Generate 7-day × 24-hour grid for multicultural teams. Shows aggregate scores for religious observances (Jumu'ah, Shabbat, Sunday worship) with severity scoring (0-1). Returns recommendations for recurring meetings.
+
+**get_microseason_context** - Get seasonal micro-context for location and date. Returns microseason ID/name, day length, sunrise/sunset, description, suggested tone. Hemisphere-aware seasonal classification.
+
+**convert_time_scale** - Convert between different time scales (Unix seconds, Unix millis, UTC ISO, Local ISO). Explicit timezone handling for local conversions. Batch conversion support.
+
+**list_time_scales** - List all supported time scales with descriptions and examples. Shows: UNIX_SECONDS, UNIX_MILLIS, UTC_ISO, LOCAL_ISO (TAI, GPS planned).
+
+### Duration & Period
+
+**calculate_duration** - Calculate structured duration between two timestamps. Returns total_seconds, days, hours, minutes, seconds as separate numeric fields. Use for calculating time differences, elapsed time, or duration between events.
+
+**calculate_period** - Calculate weeks, months, quarters, or years between two dates. Returns structured data with days, weeks, months, quarters, and years as separate numeric fields. Handles leap years and month boundaries accurately.
+
+**age_from_birthdate** - Calculate age as structured data from birthdate. Returns years, months, days, and total_days as separate numeric fields. Handles leap years and month boundaries accurately.
+
+**time_until** - Calculate time until a future timestamp. Returns structured duration data (total_seconds, days, hours, minutes, seconds) and indicates if the time is in the past.
+
+**time_since** - Calculate time since a past timestamp. Returns structured duration data (total_seconds, days, hours, minutes, seconds) and indicates if the time is in the future.
+
+### Calendar and Recurrence
+
+**interval_operations** - Perform set operations on time intervals. Operations: UNION (merge intervals), INTERSECTION (find overlap), DIFFERENCE (subtract), GAPS (find gaps). Handles overlapping and adjacent intervals with normalized output.
+
+**expand_recurrence** - Expand RRULE recurrence patterns (RFC 5545) to concrete occurrences within time window. Supports full RRULE syntax (FREQ=WEEKLY;BYDAY=MO,WE,FR). Safety limit: max 1000 occurrences.
+
+**align_calendars** - Show single chronological instant across multiple calendar systems. Supports: Gregorian, Unix, ISO Week, Ordinal (more planned: Islamic, Hebrew, Chinese).
+
+**find_partial_dates** - Find all dates matching partial specification within search range. Search by year, month, day constraints.
+
+### Fuzzy Time
+
+**create_fuzzy_time_circa** - Create fuzzy time representation from circa date expression with explicit uncertainty. Precision levels: year, month, day. Returns center point, window, confidence score (0-1). Use for 'circa 1990', historical dates with uncertainty.
+
+**create_fuzzy_time_window** - Create fuzzy time from explicit time window with custom confidence scoring. Use for uncertain future events, flexible scheduling, time estimates. Returns center point, window bounds, confidence score.
+
+**intersect_fuzzy_times** - Find intersection of two fuzzy times with refined confidence. When two uncertain time ranges overlap, this computes their intersection with combined confidence scoring.
+
+### Astronomical
+
+**get_astro_context** - Get sunrise, sunset, day length, twilight times, and moon phase for a date and location. Returns solar noon, day length in hours, civil twilight boundaries, and current moon phase.
+
+**get_day_phase** - Classify a timestamp into day phase (pre_dawn, morning, midday, afternoon, evening, night) based on solar position. Returns phase, sun above/below horizon, and time relative to sunrise/sunset.
+
+**get_season_context** - Get hemisphere-aware seasonal classification for a date and location. Returns season (winter, spring, summer, autumn with early/late variants), hemisphere, day of year, and contextual notes.
+
+**get_zodiac_context** - Get planet positions, zodiac signs, and aspects for a timestamp. Returns ecliptic longitudes, signs (with element/modality), and aspects (conjunction, opposition, trine, square, sextile) between bodies.
+
+**get_chinese_zodiac** - Get Chinese zodiac animal, element, and 60-year cycle for a date. Returns lunar year, animal (Rat to Pig), element (Wood/Fire/Earth/Metal/Water), yin/yang, and cycle indices.
+
+**get_astro_events** - Get astronomical events in a time window. Returns sun ingresses (Sun entering each zodiac sign) and moon phases (new, first quarter, full, last quarter) with precise UTC timestamps.
+
+**get_astro_calendar** - Get astrology calendar for a date range in user's timezone. Returns sun ingresses and moon phases with local times and human-readable descriptions.
+
+### Observances and Cultural
+
+**get_observances_on_date** - Get awareness days, fun days, commemorations, and cultural observances for a specific date. Categories: awareness_day, fun_day, tech, seasonal, commemoration, cultural, religious, corporate.
+
+**get_today_story** - Get curated highlights for today - most relevant observances based on user's region and interests. Returns 1-3 observances with relevance scoring.
+
+**get_observances_calendar** - Get calendar view of observances for a specific month. Returns all observances by day for planning and UI calendar displays.
 
 ## Features
 
