@@ -200,7 +200,7 @@ function formatResponse(response: QueryResponse): string {
 
 const server = new McpServer({
   name: "vreme-time-service",
-  version: "1.9.2",
+  version: "1.9.3",
 });
 
 // Configuration
@@ -1391,6 +1391,107 @@ server.registerTool("time_since", {
   }
 });
 
+// ============================================================
+// v1.9.3: Timezone Offset Intelligence
+// ============================================================
+
+server.registerTool("get_timezone_offset", {
+  description: "TIMEZONE OFFSET: Get offset between two timezones as structured data. Returns offset_seconds, offset_hours, is_dst status for both timezones, and DST transition information. Use for calculating time differences between timezones, understanding DST effects, and planning across timezones. Returns structured JSON data only (no formatted strings).",
+  inputSchema: z.object({
+    timezone_a: z.string().describe("IANA timezone identifier (e.g., 'America/New_York')"),
+    timezone_b: z.string().describe("IANA timezone identifier (e.g., 'Europe/London')"),
+    reference_time: z.string().optional().describe("Optional ISO 8601 datetime (defaults to now)")
+  })
+}, async ({ timezone_a, timezone_b, reference_time }) => {
+  updateActivityTracking();
+  try {
+    if (!timezone_a || !timezone_b) {
+      throw new Error("timezone_a and timezone_b are required");
+    }
+
+    const response = await fetch(`${VREME_API_URL}/v1/timezone/offset`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ timezone_a, timezone_b, reference_time })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`API request failed: ${response.status} ${errorText}`);
+    }
+
+    const result = await response.json();
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
+  }
+});
+
+server.registerTool("compare_timezones", {
+  description: "TIMEZONE COMPARATOR: Compare multiple timezones, return offset data for each pair. Returns structured comparison data showing offsets between all timezone pairs, current times in each timezone, and DST status. Use for coordinating across multiple timezones or understanding global time relationships. Returns structured JSON data only (no formatted strings).",
+  inputSchema: z.object({
+    timezones: z.array(z.string()).describe("Array of IANA timezone identifiers (minimum 2)"),
+    reference_time: z.string().optional().describe("Optional ISO 8601 datetime (defaults to now)")
+  })
+}, async ({ timezones, reference_time }) => {
+  updateActivityTracking();
+  try {
+    if (!timezones || !Array.isArray(timezones) || timezones.length < 2) {
+      throw new Error("timezones must be an array with at least 2 timezones");
+    }
+
+    const response = await fetch(`${VREME_API_URL}/v1/timezone/compare`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ timezones, reference_time })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`API request failed: ${response.status} ${errorText}`);
+    }
+
+    const result = await response.json();
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
+  }
+});
+
+server.registerTool("get_timezone_info", {
+  description: "TIMEZONE METADATA: Get timezone metadata including UTC offset, DST rules, and next/previous DST transitions. Returns structured data about timezone properties, current DST status, and transition information. Use for understanding timezone behavior, planning around DST changes, or getting timezone details. Returns structured JSON data only (no formatted strings).",
+  inputSchema: z.object({
+    timezone: z.string().describe("IANA timezone identifier (e.g., 'America/New_York')"),
+    reference_time: z.string().optional().describe("Optional ISO 8601 datetime (defaults to now)")
+  })
+}, async ({ timezone, reference_time }) => {
+  updateActivityTracking();
+  try {
+    if (!timezone) {
+      throw new Error("timezone is required");
+    }
+
+    const response = await fetch(`${VREME_API_URL}/v1/timezone/info`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ timezone, reference_time })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`API request failed: ${response.status} ${errorText}`);
+    }
+
+    const result = await response.json();
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
+  }
+});
+
 server.registerTool("resolve_temporal_phrase", {
   description: "🗣️ TEMPORAL PHRASE RESOLVER: Convert natural language phrases like 'tomorrow evening', 'end of week', 'early next week' to concrete time windows. Returns canonical window with start/end times, confidence score (0-1), and alternative interpretations. Context-aware for planning vs casual conversation.",
   inputSchema: z.object({
@@ -2280,7 +2381,7 @@ async function main() {
   console.error("=== VREME MCP Server v1.9.0 ===");
   console.error("Vreme Time Service MCP Server running");
   console.error(`API URL: ${VREME_API_URL}`);
-  console.error("Available tools (53 total):");
+  console.error("Available tools (56 total):");
   console.error("  🧠 get_temporal_context - AUTO-CALL at conversation start for temporal awareness");
   console.error("  ⏰ get_current_time - Use for 'What time is it?' queries");
   console.error("  📅 Temporal Tools:");
@@ -2295,12 +2396,19 @@ async function main() {
   console.error("  🆕 v1.7.0 Temporal Context System (11 tools):");
   console.error("     - execute_time_arithmetic, resolve_temporal_phrase, compare_temporal_phrases");
   console.error("");
-  console.error("  ⏱️ v1.9.2 Duration & Period Intelligence (5 NEW tools):");
+  console.error("  ⏱️ v1.9.2 Duration & Period Intelligence (5 tools):");
   console.error("     - calculate_duration - Structured duration between timestamps");
   console.error("     - calculate_period - Weeks, months, quarters, years between dates");
   console.error("     - age_from_birthdate - Age calculation as structured data");
   console.error("     - time_until - Time until future timestamp");
   console.error("     - time_since - Time since past timestamp");
+  console.error("");
+  console.error("  🌍 v1.9.3 Timezone Offset Intelligence (3 NEW tools):");
+  console.error("     - get_timezone_offset - Offset between two timezones with DST info");
+  console.error("     - compare_timezones - Compare multiple timezones, return offset pairs");
+  console.error("     - get_timezone_info - Timezone metadata, DST rules, transitions");
+  console.error("");
+  console.error("  🆕 v1.7.0 Temporal Context System (11 tools):");
   console.error("     - export_temporal_context_snapshot, generate_temporal_prompt_prefix");
   console.error("     - check_good_moment_for_activity, check_temporal_conflicts, explain_time_behavior");
   console.error("     - analyze_global_sacred_time, get_weekly_sacred_rhythm, get_microseason_context");

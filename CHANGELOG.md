@@ -2,6 +2,54 @@
 
 All notable changes to the Vreme Temporal MCP Server are documented here.
 
+## [1.9.3] - 2024-12-20
+
+### Timezone Offset Intelligence
+
+**3 NEW MCP TOOLS (56 total)** - Timezone offset calculations, DST transitions, and timezone metadata
+
+### Added
+
+#### Timezone Offset Tools (3 NEW tools)
+- **`get_timezone_offset`** - Get offset between two timezones as structured data
+  - Returns offset_seconds, offset_hours, is_dst status for both timezones
+  - Includes DST transition information for both timezones
+  - Use for calculating time differences between timezones and understanding DST effects
+  - Supports all IANA timezone identifiers
+
+- **`compare_timezones`** - Compare multiple timezones, return offset data for each pair
+  - Returns structured comparison data showing offsets between all timezone pairs
+  - Shows current times in each timezone and DST status
+  - Use for coordinating across multiple timezones or understanding global time relationships
+  - Minimum 2 timezones required
+
+- **`get_timezone_info`** - Get timezone metadata including UTC offset, DST rules, and transitions
+  - Returns structured data about timezone properties
+  - Shows current DST status and next/previous DST transitions
+  - Use for understanding timezone behavior, planning around DST changes, or getting timezone details
+  - Supports all IANA timezone identifiers
+
+### Design Philosophy
+
+All new tools follow Vreme's data-first architecture:
+- **Structured JSON only** - No formatted strings, LLM formats as needed
+- **DST-aware calculations** - Accurate handling of daylight saving time transitions
+- **Stateless operations** - Fast, scalable, no storage
+- **Authoritative data** - Returns structured facts about timezone offsets and transitions
+
+### Changed
+
+- **Total MCP tools:** 53 (was 53) → **+3 new tools = 56 total**
+- **Python service:** Added TimezoneIntelligence engine module
+- **Python service:** Added 3 new endpoints at `/v1/timezone/*`
+- **MCP server:** Updated startup message with v1.9.3 tools
+
+### Documentation
+
+- Updated README.md with new tools in Timezone Offset category
+- Updated package.json description (53 → 56 tools)
+- Updated Python service README with new endpoints
+
 ## [1.9.2] - 2024-12-20
 
 ### Duration & Period Intelligence
