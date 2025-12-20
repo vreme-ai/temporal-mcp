@@ -1,12 +1,11 @@
 # Vreme Time Service MCP Tools Reference
 
-This document lists all 49 MCP (Model Context Protocol) tools available in the Vreme Time Service server.
+This document lists all 48 MCP (Model Context Protocol) tools available in the Vreme Time Service server.
 
 ## Table of Contents
 
 - [Core Temporal Tools](#core-temporal-tools)
 - [Holiday and Business Time](#holiday-and-business-time)
-- [User Analysis](#user-analysis)
 - [Advanced Temporal Processing](#advanced-temporal-processing)
 - [Calendar and Recurrence](#calendar-and-recurrence)
 - [Fuzzy Time](#fuzzy-time)
@@ -74,9 +73,6 @@ This document lists all 49 MCP (Model Context Protocol) tools available in the V
 
 ---
 
-## User Analysis
-
----
 
 ## Advanced Temporal Processing
 
@@ -190,19 +186,18 @@ This document lists all 49 MCP (Model Context Protocol) tools available in the V
 
 ## Summary
 
-This MCP server provides **49 tools** organized into 8 main categories:
+This MCP server provides **48 tools** organized into 7 main categories:
 
 1. **Core Temporal Tools** (7 tools): Basic time and date operations
 2. **Holiday and Business Time** (10 tools): Holiday checking, business day calculations, market holidays
-3. 
-4. **Advanced Temporal Processing** (13 tools): Phrase resolution, arithmetic, conflict checking, sacred time analysis
-5. **Calendar and Recurrence** (4 tools): Calendar alignment, recurrence expansion, partial dates
-6. **Fuzzy Time** (3 tools): Uncertain time representations
-7. **Astronomical** (7 tools): Sunrise/sunset, seasons, zodiac, astro events
-8. **Observances and Cultural** (3 tools): Awareness days, observances calendars
+3. **Advanced Temporal Processing** (13 tools): Phrase resolution, arithmetic, conflict checking, sacred time analysis
+4. **Calendar and Recurrence** (4 tools): Calendar alignment, recurrence expansion, partial dates
+5. **Fuzzy Time** (3 tools): Uncertain time representations
+6. **Astronomical** (7 tools): Sunrise/sunset, seasons, zodiac, astro events
+7. **Observances and Cultural** (3 tools): Awareness days, observances calendars
 
 **Source File**: `src/index.ts`
 
-**Server Version**: 1.6.2
+**Server Version**: 1.9.0
 
 **Server Name**: vreme-time-service
