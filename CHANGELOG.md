@@ -2,6 +2,52 @@
 
 All notable changes to the Vreme Temporal MCP Server are documented here.
 
+## [1.9.4] - 2024-12-20
+
+### Date Range Operations
+
+**3 NEW MCP TOOLS (59 total)** - Date range overlap detection, containment checks, and set operations
+
+### Added
+
+#### Date Range Operations Tools (3 NEW tools)
+- **`date_range_overlap`** - Check if two date ranges overlap and return overlap details
+  - Returns boolean, overlap start/end dates, and overlap days count
+  - Use for checking if two time periods overlap, finding common availability windows, or detecting scheduling conflicts
+  - Handles edge cases (adjacent ranges, fully contained ranges)
+
+- **`date_range_contains`** - Check if a date is within a range and return position data
+  - Returns boolean, position (start/end/middle/before/after), and days from start/end
+  - Use for checking if a date falls within a period, finding relative position of dates, or validating date membership in ranges
+  - Provides detailed position information for precise date analysis
+
+- **`date_range_operations`** - Perform set operations on date ranges (union, intersection, difference)
+  - Returns merged result ranges with total days and count
+  - Operations: union (merge ranges), intersection (find common periods), difference (subtract ranges)
+  - Use for combining availability windows, finding common periods, or subtracting blocked time from available periods
+  - Automatically merges overlapping/adjacent ranges in results
+
+### Design Philosophy
+
+All new tools follow Vreme's data-first architecture:
+- **Structured JSON only** - No formatted strings, LLM formats as needed
+- **Pure computational operations** - No scheduling logic, just set operations
+- **Stateless operations** - Fast, scalable, no storage
+- **Authoritative calculations** - Returns structured facts about range relationships
+
+### Changed
+
+- **Total MCP tools:** 56 (was 56) → **+3 new tools = 59 total**
+- **Python service:** Added DateRangeOperations engine module
+- **Python service:** Added 3 new endpoints at `/v1/time/ranges/*`
+- **MCP server:** Updated startup message with v1.9.4 tools
+
+### Documentation
+
+- Updated README.md with new tools in Date Range Operations category
+- Updated package.json description (56 → 59 tools)
+- Updated Python service README with new endpoints
+
 ## [1.9.3] - 2024-12-20
 
 ### Timezone Offset Intelligence

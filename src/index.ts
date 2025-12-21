@@ -200,7 +200,7 @@ function formatResponse(response: QueryResponse): string {
 
 const server = new McpServer({
   name: "vreme-time-service",
-  version: "1.9.3",
+  version: "1.9.4",
 });
 
 // Configuration
@@ -1492,6 +1492,120 @@ server.registerTool("get_timezone_info", {
   }
 });
 
+// ============================================================
+// v1.9.4: Date Range Operations
+// ============================================================
+
+server.registerTool("date_range_overlap", {
+  description: "DATE RANGE OVERLAP: Check if two date ranges overlap and return overlap details. Returns boolean, overlap start/end dates, and overlap days count. Use for checking if two time periods overlap, finding common availability windows, or detecting scheduling conflicts. Returns structured JSON data only (no formatted strings).",
+  inputSchema: z.object({
+    range_a_start: z.string().describe("ISO 8601 date string for range A start (e.g., '2024-01-01')"),
+    range_a_end: z.string().describe("ISO 8601 date string for range A end (e.g., '2024-01-31')"),
+    range_b_start: z.string().describe("ISO 8601 date string for range B start (e.g., '2024-01-15')"),
+    range_b_end: z.string().describe("ISO 8601 date string for range B end (e.g., '2024-02-15')")
+  })
+}, async ({ range_a_start, range_a_end, range_b_start, range_b_end }) => {
+  updateActivityTracking();
+  try {
+    if (!range_a_start || !range_a_end || !range_b_start || !range_b_end) {
+      throw new Error("All range parameters (range_a_start, range_a_end, range_b_start, range_b_end) are required");
+    }
+
+    const response = await fetch(`${VREME_API_URL}/v1/time/ranges/overlap`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ range_a_start, range_a_end, range_b_start, range_b_end })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`API request failed: ${response.status} ${errorText}`);
+    }
+
+    const result = await response.json();
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
+  }
+});
+
+server.registerTool("date_range_contains", {
+  description: "DATE RANGE CONTAINS: Check if a date is within a range and return position data. Returns boolean, position (start/end/middle/before/after), and days from start/end. Use for checking if a date falls within a period, finding relative position of dates, or validating date membership in ranges. Returns structured JSON data only (no formatted strings).",
+  inputSchema: z.object({
+    range_start: z.string().describe("ISO 8601 date string for range start (e.g., '2024-01-01')"),
+    range_end: z.string().describe("ISO 8601 date string for range end (e.g., '2024-01-31')"),
+    date_to_check: z.string().describe("ISO 8601 date string to check (e.g., '2024-01-15')")
+  })
+}, async ({ range_start, range_end, date_to_check }) => {
+  updateActivityTracking();
+  try {
+    if (!range_start || !range_end || !date_to_check) {
+      throw new Error("range_start, range_end, and date_to_check are required");
+    }
+
+    const response = await fetch(`${VREME_API_URL}/v1/time/ranges/contains`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ range_start, range_end, date_to_check })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`API request failed: ${response.status} ${errorText}`);
+    }
+
+    const result = await response.json();
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
+  }
+});
+
+server.registerTool("date_range_operations", {
+  description: "DATE RANGE SET OPERATIONS: Perform set operations on date ranges (union, intersection, difference). Returns merged result ranges with total days and count. Use for combining availability windows, finding common periods, or subtracting blocked time from available periods. Returns structured JSON data only (no formatted strings).",
+  inputSchema: z.object({
+    ranges_a: z.array(z.object({
+      start: z.string().describe("ISO 8601 date string for range start"),
+      end: z.string().describe("ISO 8601 date string for range end")
+    })).describe("Array of date ranges with start and end keys"),
+    ranges_b: z.array(z.object({
+      start: z.string().describe("ISO 8601 date string for range start"),
+      end: z.string().describe("ISO 8601 date string for range end")
+    })).optional().describe("Optional array of date ranges (required for intersection/difference operations)"),
+    operation: z.enum(["union", "intersection", "difference"]).describe("Set operation: union, intersection, or difference")
+  })
+}, async ({ ranges_a, ranges_b, operation }) => {
+  updateActivityTracking();
+  try {
+    if (!ranges_a || !Array.isArray(ranges_a)) {
+      throw new Error("ranges_a must be an array");
+    }
+
+    if (operation !== "union" && !ranges_b) {
+      throw new Error(`ranges_b is required for ${operation} operation`);
+    }
+
+    const response = await fetch(`${VREME_API_URL}/v1/time/ranges/operations`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ranges_a, ranges_b, operation })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`API request failed: ${response.status} ${errorText}`);
+    }
+
+    const result = await response.json();
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
+  }
+});
+
 server.registerTool("resolve_temporal_phrase", {
   description: "🗣️ TEMPORAL PHRASE RESOLVER: Convert natural language phrases like 'tomorrow evening', 'end of week', 'early next week' to concrete time windows. Returns canonical window with start/end times, confidence score (0-1), and alternative interpretations. Context-aware for planning vs casual conversation.",
   inputSchema: z.object({
@@ -2381,7 +2495,7 @@ async function main() {
   console.error("=== VREME MCP Server v1.9.0 ===");
   console.error("Vreme Time Service MCP Server running");
   console.error(`API URL: ${VREME_API_URL}`);
-  console.error("Available tools (56 total):");
+  console.error("Available tools (59 total):");
   console.error("  🧠 get_temporal_context - AUTO-CALL at conversation start for temporal awareness");
   console.error("  ⏰ get_current_time - Use for 'What time is it?' queries");
   console.error("  📅 Temporal Tools:");
@@ -2403,10 +2517,15 @@ async function main() {
   console.error("     - time_until - Time until future timestamp");
   console.error("     - time_since - Time since past timestamp");
   console.error("");
-  console.error("  🌍 v1.9.3 Timezone Offset Intelligence (3 NEW tools):");
+  console.error("  🌍 v1.9.3 Timezone Offset Intelligence (3 tools):");
   console.error("     - get_timezone_offset - Offset between two timezones with DST info");
   console.error("     - compare_timezones - Compare multiple timezones, return offset pairs");
   console.error("     - get_timezone_info - Timezone metadata, DST rules, transitions");
+  console.error("");
+  console.error("  📅 v1.9.4 Date Range Operations (3 NEW tools):");
+  console.error("     - date_range_overlap - Check if two date ranges overlap");
+  console.error("     - date_range_contains - Check if date is within range");
+  console.error("     - date_range_operations - Set operations (union, intersection, difference)");
   console.error("");
   console.error("  🆕 v1.7.0 Temporal Context System (11 tools):");
   console.error("     - export_temporal_context_snapshot, generate_temporal_prompt_prefix");
