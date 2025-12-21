@@ -6,16 +6,26 @@
 
 # Vreme Temporal MCP Server
 
-**v1.9.2**
+**v1.9.4**
 
-MCP server providing comprehensive temporal intelligence including timezone conversions, 32 cultural calendars, astronomical events, prayer times, 247+ country holiday data, 5 financial markets, business time calculations, astrology, and observance tracking.
+MCP server providing comprehensive temporal intelligence including timezone conversions, 32 cultural calendars, astronomical events, prayer times, 247+ country holiday data, 5 financial markets, business time calculations, astrology, observance tracking, timezone offset intelligence, and date range operations.
 
 [![npm version](https://img.shields.io/npm/v/@vreme/temporal-mcp.svg)](https://www.npmjs.com/package/@vreme/temporal-mcp)
 [![Docker Image](https://img.shields.io/docker/v/vreme/temporal-mcp?label=docker)](https://hub.docker.com/r/vreme/temporal-mcp)
 
+## What's New in v1.9.4
+
+**Date Range Operations** - 3 new tools for date range calculations and set operations:
+
+- **`date_range_overlap`** - Check if two date ranges overlap and return overlap details (overlap dates, days count)
+- **`date_range_contains`** - Check if a date is within a range and return position data (start/end/middle/before/after)
+- **`date_range_operations`** - Perform set operations on date ranges (union, intersection, difference) with merged results
+
+All tools return structured JSON data only (no formatted strings), following Vreme's data-first philosophy. Perfect for checking availability windows, finding common periods, detecting scheduling conflicts, or combining time ranges.
+
 ## Overview
 
-Vreme Temporal MCP Server provides 53 specialized tools for temporal intelligence, organized into 8 categories:
+Vreme Temporal MCP Server provides 59 specialized tools for temporal intelligence, organized into 10 categories:
 
 - **Core Temporal Tools** (7) - Time queries, prayer times, activity appropriateness
 - **Holiday & Business Time** (10) - 247+ countries, business day calculations
@@ -25,6 +35,8 @@ Vreme Temporal MCP Server provides 53 specialized tools for temporal intelligenc
 - **Astronomical** (7) - Sunrise/sunset, zodiac, moon phases
 - **Observances & Cultural** (3) - Awareness days, tech holidays, commemorations
 - **Duration & Period** (5) - Duration calculations, period analysis, age calculations
+- **Timezone Offset** (3) - Timezone offset calculations, DST transitions, timezone metadata
+- **Date Range Operations** (3) - Date range overlap detection, containment checks, set operations
 
 ## Tools Reference
 
@@ -105,6 +117,22 @@ Vreme Temporal MCP Server provides 53 specialized tools for temporal intelligenc
 **time_until** - Calculate time until a future timestamp. Returns structured duration data (total_seconds, days, hours, minutes, seconds) and indicates if the time is in the past.
 
 **time_since** - Calculate time since a past timestamp. Returns structured duration data (total_seconds, days, hours, minutes, seconds) and indicates if the time is in the future.
+
+### Timezone Offset
+
+**get_timezone_offset** - Get offset between two timezones as structured data. Returns offset_seconds, offset_hours, is_dst status for both timezones, and DST transition information. Use for calculating time differences between timezones and understanding DST effects.
+
+**compare_timezones** - Compare multiple timezones, return offset data for each pair. Returns structured comparison data showing offsets between all timezone pairs, current times in each timezone, and DST status.
+
+**get_timezone_info** - Get timezone metadata including UTC offset, DST rules, and next/previous DST transitions. Returns structured data about timezone properties, current DST status, and transition information.
+
+### Date Range Operations
+
+**date_range_overlap** - Check if two date ranges overlap and return overlap details. Returns boolean, overlap start/end dates, and overlap days count. Use for checking if two time periods overlap, finding common availability windows, or detecting scheduling conflicts.
+
+**date_range_contains** - Check if a date is within a range and return position data. Returns boolean, position (start/end/middle/before/after), and days from start/end. Use for checking if a date falls within a period, finding relative position of dates, or validating date membership in ranges.
+
+**date_range_operations** - Perform set operations on date ranges (union, intersection, difference). Returns merged result ranges with total days and count. Use for combining availability windows, finding common periods, or subtracting blocked time from available periods.
 
 ### Calendar and Recurrence
 
