@@ -2,6 +2,47 @@
 
 All notable changes to the Vreme Temporal MCP Server are documented here.
 
+## [1.9.5] - 2024-12-20
+
+### Historical & Projection Facts
+
+**2 NEW MCP TOOLS (61 total)** - Historical date facts and date projections
+
+### Added
+
+#### Historical & Projection Tools (2 NEW tools)
+- **`historical_day_of_week`** - Get day of week for a historical date as structured data
+  - Returns day name, day number (0-6), ISO weekday (1-7), and weekend status
+  - Use for finding what day of week a historical date fell on, checking weekend status, or analyzing temporal patterns
+  - Supports any date within Gregorian calendar limitations
+
+- **`project_date`** - Calculate future/past dates from a base date
+  - Returns ISO timestamp (not formatted string)
+  - Supports days, months, and years offsets (can combine all three)
+  - Use for calculating dates N days/months/years in the future or past, finding anniversary dates, or projecting deadlines
+  - Handles leap years and month boundaries accurately using relativedelta
+
+### Design Philosophy
+
+All new tools follow Vreme's data-first architecture:
+- **Structured JSON only** - No formatted strings, LLM formats as needed
+- **Pure computational facts** - Returns structured facts only, no formatting
+- **Stateless operations** - Fast, scalable, no storage
+- **Authoritative calculations** - Accurate handling of edge cases (leap years, month boundaries, historical dates)
+
+### Changed
+
+- **Total MCP tools:** 59 (was 59) → **+2 new tools = 61 total**
+- **Python service:** Added TemporalProjection engine module
+- **Python service:** Added 2 new endpoints at `/v1/time/historical/*` and `/v1/time/project`
+- **MCP server:** Updated startup message with v1.9.5 tools
+
+### Documentation
+
+- Updated README.md with new tools in Historical & Projection category
+- Updated package.json description (59 → 61 tools)
+- Updated Python service README with new endpoints
+
 ## [1.9.4] - 2024-12-20
 
 ### Date Range Operations

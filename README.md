@@ -6,26 +6,25 @@
 
 # Vreme Temporal MCP Server
 
-**v1.9.4**
+**v1.9.5**
 
-MCP server providing comprehensive temporal intelligence including timezone conversions, 32 cultural calendars, astronomical events, prayer times, 247+ country holiday data, 5 financial markets, business time calculations, astrology, observance tracking, timezone offset intelligence, and date range operations.
+MCP server providing comprehensive temporal intelligence including timezone conversions, 32 cultural calendars, astronomical events, prayer times, 247+ country holiday data, 5 financial markets, business time calculations, astrology, observance tracking, timezone offset intelligence, date range operations, and historical date facts.
 
 [![npm version](https://img.shields.io/npm/v/@vreme/temporal-mcp.svg)](https://www.npmjs.com/package/@vreme/temporal-mcp)
 [![Docker Image](https://img.shields.io/docker/v/vreme/temporal-mcp?label=docker)](https://hub.docker.com/r/vreme/temporal-mcp)
 
-## What's New in v1.9.4
+## What's New in v1.9.5
 
-**Date Range Operations** - 3 new tools for date range calculations and set operations:
+**Historical & Projection Facts** - 2 new tools for historical date analysis and date projections:
 
-- **`date_range_overlap`** - Check if two date ranges overlap and return overlap details (overlap dates, days count)
-- **`date_range_contains`** - Check if a date is within a range and return position data (start/end/middle/before/after)
-- **`date_range_operations`** - Perform set operations on date ranges (union, intersection, difference) with merged results
+- **`historical_day_of_week`** - Get day of week for any historical date (returns day name, number, ISO weekday, weekend status)
+- **`project_date`** - Calculate future/past dates from a base date using days, months, or years (handles leap years and month boundaries accurately)
 
-All tools return structured JSON data only (no formatted strings), following Vreme's data-first philosophy. Perfect for checking availability windows, finding common periods, detecting scheduling conflicts, or combining time ranges.
+All tools return structured JSON data only (no formatted strings), following Vreme's data-first philosophy. Perfect for historical date analysis, calculating anniversaries, projecting deadlines, or finding dates relative to a base date.
 
 ## Overview
 
-Vreme Temporal MCP Server provides 59 specialized tools for temporal intelligence, organized into 10 categories:
+Vreme Temporal MCP Server provides 61 specialized tools for temporal intelligence, organized into 11 categories:
 
 - **Core Temporal Tools** (7) - Time queries, prayer times, activity appropriateness
 - **Holiday & Business Time** (10) - 247+ countries, business day calculations
@@ -37,6 +36,7 @@ Vreme Temporal MCP Server provides 59 specialized tools for temporal intelligenc
 - **Duration & Period** (5) - Duration calculations, period analysis, age calculations
 - **Timezone Offset** (3) - Timezone offset calculations, DST transitions, timezone metadata
 - **Date Range Operations** (3) - Date range overlap detection, containment checks, set operations
+- **Historical & Projection** (2) - Historical day of week facts, date projections
 
 ## Tools Reference
 
@@ -133,6 +133,12 @@ Vreme Temporal MCP Server provides 59 specialized tools for temporal intelligenc
 **date_range_contains** - Check if a date is within a range and return position data. Returns boolean, position (start/end/middle/before/after), and days from start/end. Use for checking if a date falls within a period, finding relative position of dates, or validating date membership in ranges.
 
 **date_range_operations** - Perform set operations on date ranges (union, intersection, difference). Returns merged result ranges with total days and count. Use for combining availability windows, finding common periods, or subtracting blocked time from available periods.
+
+### Historical & Projection
+
+**historical_day_of_week** - Get day of week for a historical date as structured data. Returns day name, day number (0-6), ISO weekday (1-7), and weekend status. Use for finding what day of week a historical date fell on, checking weekend status, or analyzing temporal patterns.
+
+**project_date** - Calculate future/past dates from a base date. Returns ISO timestamp (not formatted string). Use for calculating dates N days/months/years in the future or past, finding anniversary dates, or projecting deadlines. Handles leap years and month boundaries accurately.
 
 ### Calendar and Recurrence
 
