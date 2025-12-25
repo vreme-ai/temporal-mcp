@@ -200,7 +200,7 @@ function formatResponse(response: QueryResponse): string {
 
 const server = new McpServer({
   name: "vreme-time-service",
-  version: "1.9.5",
+  version: "1.9.6",
 });
 
 // Configuration
@@ -1685,6 +1685,81 @@ server.registerTool("project_date", {
   }
 });
 
+// ============================================================
+// v1.9.6: Temporal Pattern Detection
+// ============================================================
+
+server.registerTool("detect_temporal_pattern", {
+  description: "TEMPORAL PATTERN DETECTION: Analyze if dates follow a recurring pattern (daily, weekly, monthly, yearly) using proven statistical methods. Returns structured pattern data including detected pattern type, confidence score, interval statistics, pattern details, and day-of-week information (for daily/weekly patterns). Use for identifying recurring events, validating schedule consistency, or analyzing temporal regularity. Returns structured JSON data only (no formatted strings).",
+  inputSchema: z.object({
+    dates: z.array(z.string()).describe("Array of ISO 8601 date or datetime strings (minimum 3 required)")
+  })
+}, async ({ dates }) => {
+  updateActivityTracking();
+  try {
+    if (!dates || !Array.isArray(dates)) {
+      throw new Error("dates must be an array");
+    }
+
+    if (dates.length < 3) {
+      throw new Error("Minimum 3 dates required for pattern detection");
+    }
+
+    const response = await fetch(`${VREME_API_URL}/v1/time/patterns/detect`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ dates })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`API request failed: ${response.status} ${errorText}`);
+    }
+
+    const result = await response.json();
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
+  }
+});
+
+server.registerTool("calculate_frequency", {
+  description: "FREQUENCY CALCULATION: Calculate frequency statistics of events over time using robust statistical methods. Returns events per day/week/month, interval statistics (average, min, max, median), regularity score, and time span details. Use for analyzing event frequency, calculating occurrence rates, or measuring temporal distribution. Returns structured JSON data only (no formatted strings).",
+  inputSchema: z.object({
+    dates: z.array(z.string()).describe("Array of ISO 8601 date or datetime strings (minimum 2 required)"),
+    unit: z.string().optional().describe("Optional unit for frequency display: 'days', 'weeks', or 'months' (default: 'days')")
+  })
+}, async ({ dates, unit }) => {
+  updateActivityTracking();
+  try {
+    if (!dates || !Array.isArray(dates)) {
+      throw new Error("dates must be an array");
+    }
+
+    if (dates.length < 2) {
+      throw new Error("Minimum 2 dates required for frequency calculation");
+    }
+
+    const response = await fetch(`${VREME_API_URL}/v1/time/patterns/frequency`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ dates, unit: unit || "days" })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`API request failed: ${response.status} ${errorText}`);
+    }
+
+    const result = await response.json();
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
+  }
+});
+
 server.registerTool("resolve_temporal_phrase", {
   description: "🗣️ TEMPORAL PHRASE RESOLVER: Convert natural language phrases like 'tomorrow evening', 'end of week', 'early next week' to concrete time windows. Returns canonical window with start/end times, confidence score (0-1), and alternative interpretations. Context-aware for planning vs casual conversation.",
   inputSchema: z.object({
@@ -2574,7 +2649,7 @@ async function main() {
   console.error("=== VREME MCP Server v1.9.0 ===");
   console.error("Vreme Time Service MCP Server running");
   console.error(`API URL: ${VREME_API_URL}`);
-  console.error("Available tools (61 total):");
+  console.error("Available tools (63 total):");
   console.error("  🧠 get_temporal_context - AUTO-CALL at conversation start for temporal awareness");
   console.error("  ⏰ get_current_time - Use for 'What time is it?' queries");
   console.error("  📅 Temporal Tools:");
@@ -2606,9 +2681,13 @@ async function main() {
   console.error("     - date_range_contains - Check if date is within range");
   console.error("     - date_range_operations - Set operations (union, intersection, difference)");
   console.error("");
-  console.error("  📜 v1.9.5 Historical & Projection Facts (2 NEW tools):");
+  console.error("  📜 v1.9.5 Historical & Projection Facts (2 tools):");
   console.error("     - historical_day_of_week - Get day of week for historical date");
   console.error("     - project_date - Calculate future/past dates from base date");
+  console.error("");
+  console.error("  🔍 v1.9.6 Temporal Pattern Detection (2 NEW tools):");
+  console.error("     - detect_temporal_pattern - Analyze if dates follow recurring pattern");
+  console.error("     - calculate_frequency - Calculate frequency statistics of events");
   console.error("");
   console.error("  🆕 v1.7.0 Temporal Context System (11 tools):");
   console.error("     - export_temporal_context_snapshot, generate_temporal_prompt_prefix");

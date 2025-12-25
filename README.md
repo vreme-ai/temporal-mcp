@@ -6,25 +6,25 @@
 
 # Vreme Temporal MCP Server
 
-**v1.9.5**
+**v1.9.6**
 
-MCP server providing comprehensive temporal intelligence including timezone conversions, 32 cultural calendars, astronomical events, prayer times, 247+ country holiday data, 5 financial markets, business time calculations, astrology, observance tracking, timezone offset intelligence, date range operations, and historical date facts.
+MCP server providing comprehensive temporal intelligence including timezone conversions, 32 cultural calendars, astronomical events, prayer times, 247+ country holiday data, 5 financial markets, business time calculations, astrology, observance tracking, timezone offset intelligence, date range operations, historical date facts, and temporal pattern detection.
 
 [![npm version](https://img.shields.io/npm/v/@vreme/temporal-mcp.svg)](https://www.npmjs.com/package/@vreme/temporal-mcp)
 [![Docker Image](https://img.shields.io/docker/v/vreme/temporal-mcp?label=docker)](https://hub.docker.com/r/vreme/temporal-mcp)
 
-## What's New in v1.9.5
+## What's New in v1.9.6
 
-**Historical & Projection Facts** - 2 new tools for historical date analysis and date projections:
+**Temporal Pattern Detection** - 2 new tools for analyzing recurring patterns and frequency in date/time data:
 
-- **`historical_day_of_week`** - Get day of week for any historical date (returns day name, number, ISO weekday, weekend status)
-- **`project_date`** - Calculate future/past dates from a base date using days, months, or years (handles leap years and month boundaries accurately)
+- **`detect_temporal_pattern`** - Analyze if dates follow a recurring pattern (daily, weekly, monthly, yearly) using proven statistical methods. Returns pattern type, confidence score, interval statistics, and day-of-week information (for daily/weekly patterns).
+- **`calculate_frequency`** - Calculate frequency statistics of events over time. Returns events per day/week/month, interval statistics (average, min, max, median), and regularity score.
 
-All tools return structured JSON data only (no formatted strings), following Vreme's data-first philosophy. Perfect for historical date analysis, calculating anniversaries, projecting deadlines, or finding dates relative to a base date.
+All tools return structured JSON data only (no formatted strings), following Vreme's data-first philosophy. Uses numpy and scipy for robust, battle-tested statistical calculations. Perfect for identifying recurring events, validating schedule consistency, or analyzing temporal distribution.
 
 ## Overview
 
-Vreme Temporal MCP Server provides 61 specialized tools for temporal intelligence, organized into 11 categories:
+Vreme Temporal MCP Server provides 63 specialized tools for temporal intelligence, organized into 12 categories:
 
 - **Core Temporal Tools** (7) - Time queries, prayer times, activity appropriateness
 - **Holiday & Business Time** (10) - 247+ countries, business day calculations
@@ -37,6 +37,7 @@ Vreme Temporal MCP Server provides 61 specialized tools for temporal intelligenc
 - **Timezone Offset** (3) - Timezone offset calculations, DST transitions, timezone metadata
 - **Date Range Operations** (3) - Date range overlap detection, containment checks, set operations
 - **Historical & Projection** (2) - Historical day of week facts, date projections
+- **Temporal Pattern Detection** (2) - Pattern detection (daily/weekly/monthly/yearly), frequency analysis
 
 ## Tools Reference
 
@@ -139,6 +140,12 @@ Vreme Temporal MCP Server provides 61 specialized tools for temporal intelligenc
 **historical_day_of_week** - Get day of week for a historical date as structured data. Returns day name, day number (0-6), ISO weekday (1-7), and weekend status. Use for finding what day of week a historical date fell on, checking weekend status, or analyzing temporal patterns.
 
 **project_date** - Calculate future/past dates from a base date. Returns ISO timestamp (not formatted string). Use for calculating dates N days/months/years in the future or past, finding anniversary dates, or projecting deadlines. Handles leap years and month boundaries accurately.
+
+### Temporal Pattern Detection
+
+**detect_temporal_pattern** - Analyze if dates follow a recurring pattern (daily, weekly, monthly, yearly) using proven statistical methods. Returns pattern type, confidence score, interval statistics, pattern details, and day-of-week information (for daily/weekly patterns, including weekday names and ISO weekdays). Use for identifying recurring events, validating schedule consistency, or analyzing temporal regularity.
+
+**calculate_frequency** - Calculate frequency statistics of events over time. Returns events per day/week/month, interval statistics (average, min, max, median, std dev), regularity score, and time span details. Use for analyzing event frequency, calculating occurrence rates, or measuring temporal distribution.
 
 ### Calendar and Recurrence
 
