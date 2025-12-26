@@ -200,7 +200,7 @@ function formatResponse(response: QueryResponse): string {
 
 const server = new McpServer({
   name: "vreme-time-service",
-  version: "1.9.6",
+  version: "1.9.7",
 });
 
 // Configuration
@@ -1760,6 +1760,58 @@ server.registerTool("calculate_frequency", {
   }
 });
 
+// ============================================================
+// v1.9.7: Weekday Finder
+// ============================================================
+
+server.registerTool("find_weekday", {
+  description: "WEEKDAY FINDER: Find the next, previous, or closest occurrence of a specific weekday from a reference date. Returns the result date, days offset, and direction used. Use for scheduling queries like 'next Monday', 'previous Friday', or 'closest Wednesday'. Returns structured JSON data only (no formatted strings).",
+  inputSchema: z.object({
+    reference_date: z.string().describe("ISO 8601 date string (e.g., '2024-01-15')"),
+    weekday: z.union([
+      z.string().describe("Weekday name: 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'"),
+      z.number().describe("Weekday number: 0-6 (0=Monday, 6=Sunday) or 1-7 (ISO: 1=Monday, 7=Sunday)")
+    ]),
+    direction: z.enum(["next", "previous", "closest"]).describe("Direction: 'next' (forward), 'previous' (backward), or 'closest' (either direction)")
+  })
+}, async ({ reference_date, weekday, direction }) => {
+  updateActivityTracking();
+  try {
+    if (!reference_date) {
+      throw new Error("reference_date is required");
+    }
+
+    if (weekday === undefined || weekday === null) {
+      throw new Error("weekday is required");
+    }
+
+    if (!direction) {
+      throw new Error("direction is required (must be 'next', 'previous', or 'closest')");
+    }
+
+    if (!["next", "previous", "closest"].includes(direction)) {
+      throw new Error("direction must be 'next', 'previous', or 'closest'");
+    }
+
+    const response = await fetch(`${VREME_API_URL}/v1/time/weekday/find`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reference_date, weekday, direction })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`API request failed: ${response.status} ${errorText}`);
+    }
+
+    const result = await response.json();
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
+  }
+});
+
 server.registerTool("resolve_temporal_phrase", {
   description: "🗣️ TEMPORAL PHRASE RESOLVER: Convert natural language phrases like 'tomorrow evening', 'end of week', 'early next week' to concrete time windows. Returns canonical window with start/end times, confidence score (0-1), and alternative interpretations. Context-aware for planning vs casual conversation.",
   inputSchema: z.object({
@@ -2649,7 +2701,7 @@ async function main() {
   console.error("=== VREME MCP Server v1.9.0 ===");
   console.error("Vreme Time Service MCP Server running");
   console.error(`API URL: ${VREME_API_URL}`);
-  console.error("Available tools (63 total):");
+  console.error("Available tools (64 total):");
   console.error("  🧠 get_temporal_context - AUTO-CALL at conversation start for temporal awareness");
   console.error("  ⏰ get_current_time - Use for 'What time is it?' queries");
   console.error("  📅 Temporal Tools:");
@@ -2685,9 +2737,12 @@ async function main() {
   console.error("     - historical_day_of_week - Get day of week for historical date");
   console.error("     - project_date - Calculate future/past dates from base date");
   console.error("");
-  console.error("  🔍 v1.9.6 Temporal Pattern Detection (2 NEW tools):");
+  console.error("  🔍 v1.9.6 Temporal Pattern Detection (2 tools):");
   console.error("     - detect_temporal_pattern - Analyze if dates follow recurring pattern");
   console.error("     - calculate_frequency - Calculate frequency statistics of events");
+  console.error("");
+  console.error("  📅 v1.9.7 Weekday Finder (1 NEW tool):");
+  console.error("     - find_weekday - Find next/previous/closest weekday from reference date");
   console.error("");
   console.error("  🆕 v1.7.0 Temporal Context System (11 tools):");
   console.error("     - export_temporal_context_snapshot, generate_temporal_prompt_prefix");
