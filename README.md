@@ -6,24 +6,26 @@
 
 # Vreme Temporal MCP Server
 
-**v1.9.7**
+**v1.9.8**
 
-MCP server providing comprehensive temporal intelligence including timezone conversions, 32 cultural calendars, astronomical events, prayer times, 247+ country holiday data, 5 financial markets, business time calculations, astrology, observance tracking, timezone offset intelligence, date range operations, historical date facts, temporal pattern detection, and weekday finder.
+MCP server providing comprehensive temporal intelligence including timezone conversions, 32 cultural calendars, astronomical events, prayer times, 247+ country holiday data, 5 financial markets, business time calculations, astrology, observance tracking, timezone offset intelligence, date range operations, historical date facts, temporal pattern detection, weekday finder, business days calculator, and nth occurrence finder.
 
 [![npm version](https://img.shields.io/npm/v/@vreme/temporal-mcp.svg)](https://www.npmjs.com/package/@vreme/temporal-mcp)
 [![Docker Image](https://img.shields.io/docker/v/vreme/temporal-mcp?label=docker)](https://hub.docker.com/r/vreme/temporal-mcp)
 
-## What's New in v1.9.7
+## What's New in v1.9.8
 
-**Weekday Finder** - 1 new tool for finding weekdays relative to a reference date:
+**Business Days Calculator + Nth Occurrence Finder** - 2 new tools for business day calculations and occurrence finding:
 
-- **`find_weekday`** - Find the next, previous, or closest occurrence of a specific weekday from a reference date. Returns result date, days offset, and direction used. Supports weekday names ("Monday") or numbers (0-6 or 1-7). Perfect for scheduling queries like "next Monday", "previous Friday", or "closest Wednesday".
+- **`calculate_business_days_between`** - Calculate the number of business days between two dates, excluding weekends and public holidays. Returns structured count data including business days, calendar days, excluded weekends, and excluded holidays. Perfect for SLA calculations, deadline planning, or working day counts.
+
+- **`find_nth_occurrence`** - Find the nth occurrence of a specific weekday in a month or year. Returns result date, occurrence number, and total occurrences. Use for queries like "3rd Monday of January", "last Friday of 2024", or "2nd Tuesday of next month". Supports optional business day checking.
 
 All tools return structured JSON data only (no formatted strings), following Vreme's data-first philosophy. Fast execution, pure computational facts.
 
 ## Overview
 
-Vreme Temporal MCP Server provides 64 specialized tools for temporal intelligence, organized into 13 categories:
+Vreme Temporal MCP Server provides 66 specialized tools for temporal intelligence, organized into 15 categories:
 
 - **Core Temporal Tools** (7) - Time queries, prayer times, activity appropriateness
 - **Holiday & Business Time** (10) - 247+ countries, business day calculations
@@ -38,6 +40,8 @@ Vreme Temporal MCP Server provides 64 specialized tools for temporal intelligenc
 - **Historical & Projection** (2) - Historical day of week facts, date projections
 - **Temporal Pattern Detection** (2) - Pattern detection (daily/weekly/monthly/yearly), frequency analysis
 - **Weekday Finder** (1) - Find next/previous/closest weekday from reference date
+- **Business Days Calculator** (1) - Calculate business days between two dates
+- **Nth Occurrence Finder** (1) - Find nth occurrence of weekday in month/year
 
 ## Tools Reference
 
@@ -150,6 +154,14 @@ Vreme Temporal MCP Server provides 64 specialized tools for temporal intelligenc
 ### Weekday Finder
 
 **find_weekday** - Find the next, previous, or closest occurrence of a specific weekday from a reference date. Returns result date, days offset, and direction used. Accepts weekday names ("Monday") or numbers (0-6 or 1-7). Use for scheduling queries like "next Monday", "previous Friday", or "closest Wednesday".
+
+### Business Days Calculator
+
+**calculate_business_days_between** - Calculate the number of business days between two dates, excluding weekends and public holidays. Returns structured count data including business days, calendar days, excluded weekends, and excluded holidays. Use for calculating working days between dates, SLA calculations, or deadline planning. Configurable inclusive/exclusive start/end dates.
+
+### Nth Occurrence Finder
+
+**find_nth_occurrence** - Find the nth occurrence of a specific weekday in a month or year. Returns result date, occurrence number, and total occurrences in the period. Use for queries like "3rd Monday of January", "last Friday of 2024", or "2nd Tuesday of next month". Supports month-specific or year-wide searches, with optional business day checking.
 
 ### Calendar and Recurrence
 

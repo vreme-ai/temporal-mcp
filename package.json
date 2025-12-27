@@ -1,7 +1,7 @@
 {
   "name": "@vreme/temporal-mcp",
-  "version": "1.9.7",
-  "description": "MCP server providing temporal intelligence for AI: 64 tools for timezone conversions, 32 cultural calendars, 247+ country holidays, 5 financial markets, business time calculations, astronomical events, prayer times, astrology, duration/period calculations, timezone offset intelligence, date range operations, historical date facts, temporal pattern detection, and weekday finder. Works with Claude Desktop, VS Code, Continue, Cline, and any MCP-compatible client.",
+  "version": "1.9.8",
+  "description": "MCP server providing temporal intelligence for AI: 66 tools for timezone conversions, 32 cultural calendars, 247+ country holidays, 5 financial markets, business time calculations, astronomical events, prayer times, astrology, duration/period calculations, timezone offset intelligence, date range operations, historical date facts, temporal pattern detection, weekday finder, business days calculator, and nth occurrence finder. Works with Claude Desktop, VS Code, Continue, Cline, and any MCP-compatible client.",
   "main": "build/index.js",
   "type": "module",
   "bin": {

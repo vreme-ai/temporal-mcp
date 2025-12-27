@@ -2,6 +2,52 @@
 
 All notable changes to the Vreme Temporal MCP Server are documented here.
 
+## [1.9.8] - 2024-12-20
+
+### Business Days Calculator + Nth Occurrence Finder
+
+**2 NEW MCP TOOLS (66 total)** - Business day calculations and nth occurrence finding
+
+### Added
+
+#### Business Days Calculator Tool (1 NEW tool)
+- **`calculate_business_days_between`** - Calculate the number of business days between two dates, excluding weekends and public holidays
+  - Returns structured count data including business days, calendar days, excluded weekends, and excluded holidays
+  - Configurable inclusive/exclusive start/end dates (default: start excluded, end included)
+  - Leverages existing BusinessTimeCalculator for consistency
+  - Use for calculating working days between dates, SLA calculations, or deadline planning
+  - Tracks excluded weekends and holidays for transparency
+
+#### Nth Occurrence Finder Tool (1 NEW tool)
+- **`find_nth_occurrence`** - Find the nth occurrence of a specific weekday in a month or year
+  - Returns result date, occurrence number, and total occurrences in the period
+  - Supports month-specific searches (e.g., "3rd Monday of January") or year-wide searches (e.g., "last Friday of 2024")
+  - Uses 1-indexed nth (1st, 2nd, 3rd, etc.) for natural language alignment
+  - Supports -1 for "last" occurrence
+  - Optional business day checking for scheduling use cases
+  - Use for queries like "3rd Monday of January", "last Friday of 2024", or "2nd Tuesday of next month"
+
+### Design Philosophy
+
+All new tools follow Vreme's data-first architecture:
+- **Structured JSON only** - No formatted strings, LLM formats as needed
+- **Pure computational facts** - Returns structured count/date data only, no formatting
+- **Stateless operations** - Fast, scalable, no storage
+- **Authoritative calculations** - Leverages existing business time infrastructure
+
+### Changed
+
+- **Total MCP tools:** 64 (was 64) → **+2 new tools = 66 total**
+- **Python service:** Added BusinessDaysCalculator and NthOccurrenceFinder engine modules
+- **Python service:** Added 2 new endpoints at `/v1/time/business-days/between` and `/v1/time/occurrence/nth`
+- **MCP server:** Updated startup message with v1.9.8 tools
+
+### Documentation
+
+- Updated README.md with new tools in Business Days Calculator and Nth Occurrence Finder categories
+- Updated package.json description (64 → 66 tools)
+- Updated Python service README with new endpoints
+
 ## [1.9.7] - 2024-12-20
 
 ### Weekday Finder
