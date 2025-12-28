@@ -2,6 +2,43 @@
 
 All notable changes to the Vreme Temporal MCP Server are documented here.
 
+## [1.9.9] - 2024-12-20
+
+### Time in Timezone Calculator
+
+**1 NEW MCP TOOL (67 total)** - Convert datetime to specific timezone with structured data
+
+### Added
+
+#### Time in Timezone Calculator Tool (1 NEW tool)
+- **`calculate_time_in_timezone`** - Convert a datetime to a specific timezone and return structured data about what that time is in that timezone
+  - Returns local datetime, date, time, UTC offset (seconds, hours, formatted), DST status, timezone abbreviation, and day-of-week metadata
+  - Handles timezone-aware and naive datetimes (assumes UTC for naive if source_timezone not provided)
+  - Supports all IANA timezone identifiers
+  - Use for queries like "What is 3pm EST in Tokyo time?" or "Convert this datetime to New York timezone"
+  - Returns comprehensive metadata including day-of-week information
+
+### Design Philosophy
+
+All new tools follow Vreme's data-first architecture:
+- **Structured JSON only** - No formatted strings, LLM formats as needed
+- **Pure computational facts** - Returns structured timezone conversion data only, no formatting
+- **Stateless operations** - Fast, scalable, no storage
+- **Authoritative calculations** - Uses pytz for accurate timezone conversions
+
+### Changed
+
+- **Total MCP tools:** 66 (was 66) → **+1 new tool = 67 total**
+- **Python service:** Added TimeInTimezoneCalculator engine module
+- **Python service:** Added 1 new endpoint at `/v1/time/timezone/calculate`
+- **MCP server:** Updated startup message with v1.9.9 tool
+
+### Documentation
+
+- Updated README.md with new tool in Time in Timezone Calculator category
+- Updated package.json description (66 → 67 tools)
+- Updated Python service README with new endpoint
+
 ## [1.9.8] - 2024-12-20
 
 ### Business Days Calculator + Nth Occurrence Finder

@@ -200,7 +200,7 @@ function formatResponse(response: QueryResponse): string {
 
 const server = new McpServer({
   name: "vreme-time-service",
-  version: "1.9.8",
+  version: "1.9.9",
 });
 
 // Configuration
@@ -1903,6 +1903,47 @@ server.registerTool("find_nth_occurrence", {
   }
 });
 
+// ============================================================
+// v1.9.9: Time in Timezone Calculator
+// ============================================================
+
+server.registerTool("calculate_time_in_timezone", {
+  description: "TIME IN TIMEZONE CALCULATOR: Convert a datetime to a specific timezone and return structured data about what that time is in that timezone. Returns local datetime, date, time, UTC offset, DST status, timezone abbreviation, and metadata. Use for queries like 'What is 3pm EST in Tokyo time?' or 'Convert this datetime to New York timezone'. Returns structured JSON data only (no formatted strings).",
+  inputSchema: z.object({
+    datetime: z.string().describe("ISO 8601 datetime string (can be in any timezone or UTC)"),
+    target_timezone: z.string().describe("IANA timezone identifier (e.g., 'America/New_York', 'Europe/London', 'Asia/Tokyo')"),
+    source_timezone: z.string().optional().describe("IANA timezone identifier for source datetime (optional, if not provided assumes UTC or parses from datetime string)")
+  })
+}, async ({ datetime, target_timezone, source_timezone }) => {
+  updateActivityTracking();
+  try {
+    if (!datetime) {
+      throw new Error("datetime is required");
+    }
+
+    if (!target_timezone) {
+      throw new Error("target_timezone is required");
+    }
+
+    const response = await fetch(`${VREME_API_URL}/v1/time/timezone/calculate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ datetime, target_timezone, source_timezone })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`API request failed: ${response.status} ${errorText}`);
+    }
+
+    const result = await response.json();
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
+  }
+});
+
 server.registerTool("resolve_temporal_phrase", {
   description: "🗣️ TEMPORAL PHRASE RESOLVER: Convert natural language phrases like 'tomorrow evening', 'end of week', 'early next week' to concrete time windows. Returns canonical window with start/end times, confidence score (0-1), and alternative interpretations. Context-aware for planning vs casual conversation.",
   inputSchema: z.object({
@@ -2792,7 +2833,7 @@ async function main() {
   console.error("=== VREME MCP Server v1.9.0 ===");
   console.error("Vreme Time Service MCP Server running");
   console.error(`API URL: ${VREME_API_URL}`);
-  console.error("Available tools (66 total):");
+  console.error("Available tools (67 total):");
   console.error("  🧠 get_temporal_context - AUTO-CALL at conversation start for temporal awareness");
   console.error("  ⏰ get_current_time - Use for 'What time is it?' queries");
   console.error("  📅 Temporal Tools:");
@@ -2835,9 +2876,12 @@ async function main() {
   console.error("  📅 v1.9.7 Weekday Finder (1 tool):");
   console.error("     - find_weekday - Find next/previous/closest weekday from reference date");
   console.error("");
-  console.error("  📊 v1.9.8 Business Days Calculator + Nth Occurrence Finder (2 NEW tools):");
+  console.error("  📊 v1.9.8 Business Days Calculator + Nth Occurrence Finder (2 tools):");
   console.error("     - calculate_business_days_between - Calculate business days between two dates");
   console.error("     - find_nth_occurrence - Find nth occurrence of weekday in month/year");
+  console.error("");
+  console.error("  🌍 v1.9.9 Time in Timezone Calculator (1 NEW tool):");
+  console.error("     - calculate_time_in_timezone - Convert datetime to specific timezone");
   console.error("");
   console.error("  🆕 v1.7.0 Temporal Context System (11 tools):");
   console.error("     - export_temporal_context_snapshot, generate_temporal_prompt_prefix");
