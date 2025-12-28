@@ -2,6 +2,62 @@
 
 All notable changes to the Vreme Temporal MCP Server are documented here.
 
+## [1.9.6] - 2024-12-20
+
+### Temporal Pattern Detection
+
+**2 NEW MCP TOOLS (63 total)** - Pattern detection and frequency analysis using proven statistical methods
+
+### Added
+
+#### Temporal Pattern Detection Tools (2 NEW tools)
+- **`detect_temporal_pattern`** - Analyze if dates follow a recurring pattern (daily, weekly, monthly, yearly)
+  - Uses numpy and scipy for robust statistical calculations
+  - Returns pattern type, confidence score (0.0-1.0), interval statistics, pattern details, and day-of-week information
+  - Day-of-week info includes weekday names, numbers, ISO weekdays, and primary weekday (for daily/weekly patterns)
+  - Use for identifying recurring events, validating schedule consistency, or analyzing temporal regularity
+  - Minimum 3 dates required for pattern detection
+  - Handles edge cases: irregular patterns, mixed date/datetime formats, large datasets
+
+- **`calculate_frequency`** - Calculate frequency statistics of events over time
+  - Uses numpy for statistical calculations (mean, median, std dev, min, max)
+  - Returns events per day/week/month, interval statistics, regularity score, and time span details
+  - Use for analyzing event frequency, calculating occurrence rates, or measuring temporal distribution
+  - Minimum 2 dates required
+  - Provides comprehensive frequency metrics and regularity analysis
+
+### Design Philosophy
+
+All new tools follow Vreme's data-first architecture:
+- **Structured JSON only** - No formatted strings, LLM formats as needed
+- **Pure computational facts** - Returns structured analysis only, no formatting
+- **Stateless operations** - Fast, scalable, no storage
+- **Authoritative calculations** - Uses proven numpy/scipy libraries for robust statistical analysis
+- **Battle-tested libraries** - numpy and scipy are industry-standard, widely-used libraries
+
+### Changed
+
+- **Total MCP tools:** 61 (was 61) → **+2 new tools = 63 total**
+- **Python service:** Added TemporalPatterns engine module using numpy and scipy
+- **Python service:** Added 2 new endpoints at `/v1/time/patterns/*`
+- **MCP server:** Updated startup message with v1.9.6 tools
+- **Dependencies:** Added numpy>=1.24.0 and scipy>=1.10.0 to requirements.txt
+
+### Enhanced
+
+- **`detect_temporal_pattern`** now includes day-of-week information for daily/weekly patterns
+  - Added `day_of_week` field with weekday names, numbers, ISO weekdays, and primary weekday
+  - Enables responses like "Your meetings are every Wednesday" instead of just "weekly pattern"
+  - Only included for daily/weekly patterns where day-of-week is relevant
+
+### Documentation
+
+- Updated README.md with new tools in Temporal Pattern Detection category
+- Updated package.json description (61 → 63 tools)
+- Updated Python service README with new endpoints
+- Created comprehensive test suite and usage examples
+- Updated all documentation to reflect day-of-week information enhancement
+
 ## [1.9.5] - 2024-12-20
 
 ### Historical & Projection Facts
