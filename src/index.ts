@@ -200,7 +200,7 @@ function formatResponse(response: QueryResponse): string {
 
 const server = new McpServer({
   name: "vreme-time-service",
-  version: "1.9.4",
+  version: "1.9.5",
 });
 
 // Configuration
@@ -1606,6 +1606,85 @@ server.registerTool("date_range_operations", {
   }
 });
 
+// ============================================================
+// v1.9.5: Historical & Projection Facts
+// ============================================================
+
+server.registerTool("historical_day_of_week", {
+  description: "HISTORICAL DAY OF WEEK: Get day of week for a historical date as structured data. Returns day name, day number (0-6), ISO weekday (1-7), and weekend status. Use for finding what day of week a historical date fell on, checking weekend status, or analyzing temporal patterns. Returns structured JSON data only (no formatted strings).",
+  inputSchema: z.object({
+    date: z.string().describe("ISO 8601 date string (e.g., '1776-07-04' or '1969-07-20')")
+  })
+}, async ({ date }) => {
+  updateActivityTracking();
+  try {
+    if (!date) {
+      throw new Error("date is required");
+    }
+
+    const response = await fetch(`${VREME_API_URL}/v1/time/historical/day-of-week`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ date })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`API request failed: ${response.status} ${errorText}`);
+    }
+
+    const result = await response.json();
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
+  }
+});
+
+server.registerTool("project_date", {
+  description: "DATE PROJECTION: Calculate future/past dates from a base date. Returns ISO timestamp (not formatted string). Use for calculating dates N days/months/years in the future or past, finding anniversary dates, or projecting deadlines. Handles leap years and month boundaries accurately. Returns structured JSON data only (no formatted strings).",
+  inputSchema: z.object({
+    base_date: z.string().describe("ISO 8601 date or datetime string (e.g., '2024-01-15' or '2024-01-15T10:00:00Z')"),
+    days: z.number().optional().describe("Number of days to add (negative for past, default: 0)"),
+    months: z.number().optional().describe("Number of months to add (negative for past, default: 0)"),
+    years: z.number().optional().describe("Number of years to add (negative for past, default: 0)")
+  })
+}, async ({ base_date, days, months, years }) => {
+  updateActivityTracking();
+  try {
+    if (!base_date) {
+      throw new Error("base_date is required");
+    }
+
+    // At least one delta component should be provided
+    if ((days === undefined || days === 0) && (months === undefined || months === 0) && (years === undefined || years === 0)) {
+      throw new Error("At least one of days, months, or years must be non-zero");
+    }
+
+    const response = await fetch(`${VREME_API_URL}/v1/time/project`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ 
+        base_date, 
+        days: days || 0, 
+        months: months || 0, 
+        years: years || 0 
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`API request failed: ${response.status} ${errorText}`);
+    }
+
+    const result = await response.json();
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
+  }
+});
+
 server.registerTool("resolve_temporal_phrase", {
   description: "🗣️ TEMPORAL PHRASE RESOLVER: Convert natural language phrases like 'tomorrow evening', 'end of week', 'early next week' to concrete time windows. Returns canonical window with start/end times, confidence score (0-1), and alternative interpretations. Context-aware for planning vs casual conversation.",
   inputSchema: z.object({
@@ -2495,7 +2574,7 @@ async function main() {
   console.error("=== VREME MCP Server v1.9.0 ===");
   console.error("Vreme Time Service MCP Server running");
   console.error(`API URL: ${VREME_API_URL}`);
-  console.error("Available tools (59 total):");
+  console.error("Available tools (61 total):");
   console.error("  🧠 get_temporal_context - AUTO-CALL at conversation start for temporal awareness");
   console.error("  ⏰ get_current_time - Use for 'What time is it?' queries");
   console.error("  📅 Temporal Tools:");
@@ -2522,10 +2601,14 @@ async function main() {
   console.error("     - compare_timezones - Compare multiple timezones, return offset pairs");
   console.error("     - get_timezone_info - Timezone metadata, DST rules, transitions");
   console.error("");
-  console.error("  📅 v1.9.4 Date Range Operations (3 NEW tools):");
+  console.error("  📅 v1.9.4 Date Range Operations (3 tools):");
   console.error("     - date_range_overlap - Check if two date ranges overlap");
   console.error("     - date_range_contains - Check if date is within range");
   console.error("     - date_range_operations - Set operations (union, intersection, difference)");
+  console.error("");
+  console.error("  📜 v1.9.5 Historical & Projection Facts (2 NEW tools):");
+  console.error("     - historical_day_of_week - Get day of week for historical date");
+  console.error("     - project_date - Calculate future/past dates from base date");
   console.error("");
   console.error("  🆕 v1.7.0 Temporal Context System (11 tools):");
   console.error("     - export_temporal_context_snapshot, generate_temporal_prompt_prefix");
