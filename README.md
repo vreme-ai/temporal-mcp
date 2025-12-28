@@ -6,25 +6,24 @@
 
 # Vreme Temporal MCP Server
 
-**v1.9.6**
+**v1.9.7**
 
-MCP server providing comprehensive temporal intelligence including timezone conversions, 32 cultural calendars, astronomical events, prayer times, 247+ country holiday data, 5 financial markets, business time calculations, astrology, observance tracking, timezone offset intelligence, date range operations, historical date facts, and temporal pattern detection.
+MCP server providing comprehensive temporal intelligence including timezone conversions, 32 cultural calendars, astronomical events, prayer times, 247+ country holiday data, 5 financial markets, business time calculations, astrology, observance tracking, timezone offset intelligence, date range operations, historical date facts, temporal pattern detection, and weekday finder.
 
 [![npm version](https://img.shields.io/npm/v/@vreme/temporal-mcp.svg)](https://www.npmjs.com/package/@vreme/temporal-mcp)
 [![Docker Image](https://img.shields.io/docker/v/vreme/temporal-mcp?label=docker)](https://hub.docker.com/r/vreme/temporal-mcp)
 
-## What's New in v1.9.6
+## What's New in v1.9.7
 
-**Temporal Pattern Detection** - 2 new tools for analyzing recurring patterns and frequency in date/time data:
+**Weekday Finder** - 1 new tool for finding weekdays relative to a reference date:
 
-- **`detect_temporal_pattern`** - Analyze if dates follow a recurring pattern (daily, weekly, monthly, yearly) using proven statistical methods. Returns pattern type, confidence score, interval statistics, and day-of-week information (for daily/weekly patterns).
-- **`calculate_frequency`** - Calculate frequency statistics of events over time. Returns events per day/week/month, interval statistics (average, min, max, median), and regularity score.
+- **`find_weekday`** - Find the next, previous, or closest occurrence of a specific weekday from a reference date. Returns result date, days offset, and direction used. Supports weekday names ("Monday") or numbers (0-6 or 1-7). Perfect for scheduling queries like "next Monday", "previous Friday", or "closest Wednesday".
 
-All tools return structured JSON data only (no formatted strings), following Vreme's data-first philosophy. Uses numpy and scipy for robust, battle-tested statistical calculations. Perfect for identifying recurring events, validating schedule consistency, or analyzing temporal distribution.
+All tools return structured JSON data only (no formatted strings), following Vreme's data-first philosophy. Fast execution, pure computational facts.
 
 ## Overview
 
-Vreme Temporal MCP Server provides 63 specialized tools for temporal intelligence, organized into 12 categories:
+Vreme Temporal MCP Server provides 64 specialized tools for temporal intelligence, organized into 13 categories:
 
 - **Core Temporal Tools** (7) - Time queries, prayer times, activity appropriateness
 - **Holiday & Business Time** (10) - 247+ countries, business day calculations
@@ -38,6 +37,7 @@ Vreme Temporal MCP Server provides 63 specialized tools for temporal intelligenc
 - **Date Range Operations** (3) - Date range overlap detection, containment checks, set operations
 - **Historical & Projection** (2) - Historical day of week facts, date projections
 - **Temporal Pattern Detection** (2) - Pattern detection (daily/weekly/monthly/yearly), frequency analysis
+- **Weekday Finder** (1) - Find next/previous/closest weekday from reference date
 
 ## Tools Reference
 
@@ -146,6 +146,10 @@ Vreme Temporal MCP Server provides 63 specialized tools for temporal intelligenc
 **detect_temporal_pattern** - Analyze if dates follow a recurring pattern (daily, weekly, monthly, yearly) using proven statistical methods. Returns pattern type, confidence score, interval statistics, pattern details, and day-of-week information (for daily/weekly patterns, including weekday names and ISO weekdays). Use for identifying recurring events, validating schedule consistency, or analyzing temporal regularity.
 
 **calculate_frequency** - Calculate frequency statistics of events over time. Returns events per day/week/month, interval statistics (average, min, max, median, std dev), regularity score, and time span details. Use for analyzing event frequency, calculating occurrence rates, or measuring temporal distribution.
+
+### Weekday Finder
+
+**find_weekday** - Find the next, previous, or closest occurrence of a specific weekday from a reference date. Returns result date, days offset, and direction used. Accepts weekday names ("Monday") or numbers (0-6 or 1-7). Use for scheduling queries like "next Monday", "previous Friday", or "closest Wednesday".
 
 ### Calendar and Recurrence
 

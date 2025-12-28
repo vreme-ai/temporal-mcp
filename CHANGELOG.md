@@ -2,6 +2,43 @@
 
 All notable changes to the Vreme Temporal MCP Server are documented here.
 
+## [1.9.7] - 2024-12-20
+
+### Weekday Finder
+
+**1 NEW MCP TOOL (64 total)** - Find next, previous, or closest weekday from a reference date
+
+### Added
+
+#### Weekday Finder Tool (1 NEW tool)
+- **`find_weekday`** - Find the next, previous, or closest occurrence of a specific weekday from a reference date
+  - Returns result date, days offset, and direction used
+  - Supports weekday names ("Monday", "Tuesday", etc.) or numbers (0-6 or 1-7)
+  - Three directions: "next" (forward), "previous" (backward), "closest" (either direction)
+  - Use for scheduling queries like "next Monday", "previous Friday", or "closest Wednesday"
+  - Handles same-day cases: if reference date IS the target weekday, "next" goes to next week, "previous" goes to previous week, "closest" returns same day
+
+### Design Philosophy
+
+All new tools follow Vreme's data-first architecture:
+- **Structured JSON only** - No formatted strings, LLM formats as needed
+- **Pure computational facts** - Returns structured date data only, no formatting
+- **Stateless operations** - Fast, scalable, no storage
+- **Authoritative calculations** - Simple, reliable weekday arithmetic
+
+### Changed
+
+- **Total MCP tools:** 63 (was 63) → **+1 new tool = 64 total**
+- **Python service:** Added WeekdayFinder engine module
+- **Python service:** Added 1 new endpoint at `/v1/time/weekday/find`
+- **MCP server:** Updated startup message with v1.9.7 tool
+
+### Documentation
+
+- Updated README.md with new tool in Weekday Finder category
+- Updated package.json description (63 → 64 tools)
+- Updated Python service README with new endpoint
+
 ## [1.9.6] - 2024-12-20
 
 ### Temporal Pattern Detection
