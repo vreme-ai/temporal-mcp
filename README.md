@@ -6,26 +6,24 @@
 
 # Vreme Temporal MCP Server
 
-**v1.9.8**
+**v1.9.9**
 
-MCP server providing comprehensive temporal intelligence including timezone conversions, 32 cultural calendars, astronomical events, prayer times, 247+ country holiday data, 5 financial markets, business time calculations, astrology, observance tracking, timezone offset intelligence, date range operations, historical date facts, temporal pattern detection, weekday finder, business days calculator, and nth occurrence finder.
+MCP server providing comprehensive temporal intelligence including timezone conversions, 32 cultural calendars, astronomical events, prayer times, 247+ country holiday data, 5 financial markets, business time calculations, astrology, observance tracking, timezone offset intelligence, date range operations, historical date facts, temporal pattern detection, weekday finder, business days calculator, nth occurrence finder, and time in timezone calculator.
 
 [![npm version](https://img.shields.io/npm/v/@vreme/temporal-mcp.svg)](https://www.npmjs.com/package/@vreme/temporal-mcp)
 [![Docker Image](https://img.shields.io/docker/v/vreme/temporal-mcp?label=docker)](https://hub.docker.com/r/vreme/temporal-mcp)
 
-## What's New in v1.9.8
+## What's New in v1.9.9
 
-**Business Days Calculator + Nth Occurrence Finder** - 2 new tools for business day calculations and occurrence finding:
+**Time in Timezone Calculator** - 1 new tool for timezone conversions:
 
-- **`calculate_business_days_between`** - Calculate the number of business days between two dates, excluding weekends and public holidays. Returns structured count data including business days, calendar days, excluded weekends, and excluded holidays. Perfect for SLA calculations, deadline planning, or working day counts.
-
-- **`find_nth_occurrence`** - Find the nth occurrence of a specific weekday in a month or year. Returns result date, occurrence number, and total occurrences. Use for queries like "3rd Monday of January", "last Friday of 2024", or "2nd Tuesday of next month". Supports optional business day checking.
+- **`calculate_time_in_timezone`** - Convert a datetime to a specific timezone and return structured data about what that time is in that timezone. Returns local datetime, date, time, UTC offset, DST status, timezone abbreviation, and day-of-week metadata. Perfect for queries like "What is 3pm EST in Tokyo time?" or "Convert this datetime to New York timezone". Handles timezone-aware and naive datetimes.
 
 All tools return structured JSON data only (no formatted strings), following Vreme's data-first philosophy. Fast execution, pure computational facts.
 
 ## Overview
 
-Vreme Temporal MCP Server provides 66 specialized tools for temporal intelligence, organized into 15 categories:
+Vreme Temporal MCP Server provides 67 specialized tools for temporal intelligence, organized into 15 categories:
 
 - **Core Temporal Tools** (7) - Time queries, prayer times, activity appropriateness
 - **Holiday & Business Time** (10) - 247+ countries, business day calculations
@@ -42,6 +40,7 @@ Vreme Temporal MCP Server provides 66 specialized tools for temporal intelligenc
 - **Weekday Finder** (1) - Find next/previous/closest weekday from reference date
 - **Business Days Calculator** (1) - Calculate business days between two dates
 - **Nth Occurrence Finder** (1) - Find nth occurrence of weekday in month/year
+- **Time in Timezone Calculator** (1) - Convert datetime to specific timezone
 
 ## Tools Reference
 
@@ -162,6 +161,10 @@ Vreme Temporal MCP Server provides 66 specialized tools for temporal intelligenc
 ### Nth Occurrence Finder
 
 **find_nth_occurrence** - Find the nth occurrence of a specific weekday in a month or year. Returns result date, occurrence number, and total occurrences in the period. Use for queries like "3rd Monday of January", "last Friday of 2024", or "2nd Tuesday of next month". Supports month-specific or year-wide searches, with optional business day checking.
+
+### Time in Timezone Calculator
+
+**calculate_time_in_timezone** - Convert a datetime to a specific timezone and return structured data about what that time is in that timezone. Returns local datetime, date, time, UTC offset (seconds, hours, formatted), DST status, timezone abbreviation, and day-of-week metadata. Use for queries like "What is 3pm EST in Tokyo time?" or "Convert this datetime to New York timezone". Handles timezone-aware and naive datetimes.
 
 ### Calendar and Recurrence
 
