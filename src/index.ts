@@ -200,7 +200,7 @@ function formatResponse(response: QueryResponse): string {
 
 const server = new McpServer({
   name: "vreme-time-service",
-  version: "1.9.7",
+  version: "1.9.8",
 });
 
 // Configuration
@@ -1812,6 +1812,97 @@ server.registerTool("find_weekday", {
   }
 });
 
+// ============================================================
+// v1.9.8: Business Days Calculator + Nth Occurrence Finder
+// ============================================================
+
+server.registerTool("calculate_business_days_between", {
+  description: "BUSINESS DAYS CALCULATOR: Calculate the number of business days between two dates, excluding weekends and public holidays. Returns structured count data including business days, calendar days, excluded weekends, and excluded holidays. Use for calculating working days between dates, SLA calculations, or deadline planning. Returns structured JSON data only (no formatted strings).",
+  inputSchema: z.object({
+    start_date: z.string().describe("ISO 8601 date string (e.g., '2024-01-01')"),
+    end_date: z.string().describe("ISO 8601 date string (e.g., '2024-01-31')"),
+    country_code: z.string().optional().describe("ISO 3166-1 alpha-2 country code (default: 'US')"),
+    inclusive: z.object({
+      start: z.boolean().optional().describe("Include start_date in count (default: false)"),
+      end: z.boolean().optional().describe("Include end_date in count (default: true)")
+    }).optional().describe("Inclusion rules for start/end dates")
+  })
+}, async ({ start_date, end_date, country_code, inclusive }) => {
+  updateActivityTracking();
+  try {
+    if (!start_date) {
+      throw new Error("start_date is required");
+    }
+
+    if (!end_date) {
+      throw new Error("end_date is required");
+    }
+
+    const response = await fetch(`${VREME_API_URL}/v1/time/business-days/between`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ start_date, end_date, country_code, inclusive })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`API request failed: ${response.status} ${errorText}`);
+    }
+
+    const result = await response.json();
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
+  }
+});
+
+server.registerTool("find_nth_occurrence", {
+  description: "NTH OCCURRENCE FINDER: Find the nth occurrence of a specific weekday in a month or year. Returns the result date, occurrence number, and total occurrences in the period. Use for queries like '3rd Monday of January', 'last Friday of 2024', or '2nd Tuesday of next month'. Returns structured JSON data only (no formatted strings).",
+  inputSchema: z.object({
+    year: z.number().describe("Year (e.g., 2024)"),
+    month: z.number().optional().describe("Month 1-12 (optional, if not provided searches entire year)"),
+    weekday: z.union([
+      z.string().describe("Weekday name: 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'"),
+      z.number().describe("Weekday number: 0-6 (0=Monday, 6=Sunday) or 1-7 (ISO: 1=Monday, 7=Sunday)")
+    ]),
+    nth: z.number().describe("Occurrence number: 1-5 for nth occurrence, or -1 for last occurrence"),
+    country_code: z.string().optional().describe("ISO 3166-1 alpha-2 country code (optional, for business day checking)")
+  })
+}, async ({ year, month, weekday, nth, country_code }) => {
+  updateActivityTracking();
+  try {
+    if (year === undefined || year === null) {
+      throw new Error("year is required");
+    }
+
+    if (weekday === undefined || weekday === null) {
+      throw new Error("weekday is required");
+    }
+
+    if (nth === undefined || nth === null) {
+      throw new Error("nth is required");
+    }
+
+    const response = await fetch(`${VREME_API_URL}/v1/time/occurrence/nth`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ year, month, weekday, nth, country_code })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`API request failed: ${response.status} ${errorText}`);
+    }
+
+    const result = await response.json();
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
+  }
+});
+
 server.registerTool("resolve_temporal_phrase", {
   description: "🗣️ TEMPORAL PHRASE RESOLVER: Convert natural language phrases like 'tomorrow evening', 'end of week', 'early next week' to concrete time windows. Returns canonical window with start/end times, confidence score (0-1), and alternative interpretations. Context-aware for planning vs casual conversation.",
   inputSchema: z.object({
@@ -2701,7 +2792,7 @@ async function main() {
   console.error("=== VREME MCP Server v1.9.0 ===");
   console.error("Vreme Time Service MCP Server running");
   console.error(`API URL: ${VREME_API_URL}`);
-  console.error("Available tools (64 total):");
+  console.error("Available tools (66 total):");
   console.error("  🧠 get_temporal_context - AUTO-CALL at conversation start for temporal awareness");
   console.error("  ⏰ get_current_time - Use for 'What time is it?' queries");
   console.error("  📅 Temporal Tools:");
@@ -2741,8 +2832,12 @@ async function main() {
   console.error("     - detect_temporal_pattern - Analyze if dates follow recurring pattern");
   console.error("     - calculate_frequency - Calculate frequency statistics of events");
   console.error("");
-  console.error("  📅 v1.9.7 Weekday Finder (1 NEW tool):");
+  console.error("  📅 v1.9.7 Weekday Finder (1 tool):");
   console.error("     - find_weekday - Find next/previous/closest weekday from reference date");
+  console.error("");
+  console.error("  📊 v1.9.8 Business Days Calculator + Nth Occurrence Finder (2 NEW tools):");
+  console.error("     - calculate_business_days_between - Calculate business days between two dates");
+  console.error("     - find_nth_occurrence - Find nth occurrence of weekday in month/year");
   console.error("");
   console.error("  🆕 v1.7.0 Temporal Context System (11 tools):");
   console.error("     - export_temporal_context_snapshot, generate_temporal_prompt_prefix");
