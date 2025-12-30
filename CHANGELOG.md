@@ -2,6 +2,52 @@
 
 All notable changes to the Vreme Temporal MCP Server are documented here.
 
+## [1.9.10] - 2024-12-20
+
+### Calendar Boundaries & ISO Week Intelligence
+
+**2 NEW MCP TOOLS (69 total)** - Calendar boundary calculations and ISO week intelligence
+
+### Added
+
+#### Calendar Boundaries Tool (1 NEW tool)
+- **`get_calendar_boundaries`** - Get start and end dates for calendar boundaries (week, month, quarter, year)
+  - Returns structured data with start_date, end_date, day_count, and metadata
+  - Supports week boundaries with Monday or Sunday start
+  - Month boundaries return first and last day of month with leap year information
+  - Quarter boundaries return Q1-Q4 boundaries (Q1: Jan-Mar, Q2: Apr-Jun, Q3: Jul-Sep, Q4: Oct-Dec)
+  - Year boundaries return January 1 to December 31 with leap year information
+  - Use for queries like "What is the first day of this month?" or "When does this quarter end?"
+
+#### ISO Week Calculator Tool (1 NEW tool)
+- **`get_iso_week_info`** - Get ISO week number, ISO year, and week boundaries for a date
+  - Returns structured data with ISO week number (1-53), ISO year, week start/end dates, and metadata
+  - ISO weeks start on Monday and week 1 contains January 4th
+  - Handles ISO year differences from calendar year (dates in late Dec/early Jan)
+  - Returns metadata including weekday names, calendar week context, and year boundary information
+  - Use for queries like "What ISO week is this date in?" or "What is the ISO week number for December 15?"
+
+### Design Philosophy
+
+All new tools follow Vreme's data-first architecture:
+- **Structured JSON only** - No formatted strings, LLM formats as needed
+- **Pure computational facts** - Returns structured boundary/week data only, no formatting
+- **Stateless operations** - Fast, scalable, no storage
+- **Authoritative calculations** - Uses Python standard library (datetime, calendar) for accurate calculations
+
+### Changed
+
+- **Total MCP tools:** 67 (was 67) → **+2 new tools = 69 total**
+- **Python service:** Added CalendarBoundaries and ISOWeekCalculator engine modules
+- **Python service:** Added 2 new endpoints at `/v1/time/boundaries/calendar` and `/v1/time/iso-week/info`
+- **MCP server:** Updated startup message with v1.9.10 tools
+
+### Documentation
+
+- Updated README.md with new tools in Calendar Boundaries and ISO Week Intelligence categories
+- Updated package.json description (67 → 69 tools)
+- Updated Python service README with new endpoints
+
 ## [1.9.9] - 2024-12-20
 
 ### Time in Timezone Calculator
@@ -28,7 +74,7 @@ All new tools follow Vreme's data-first architecture:
 
 ### Changed
 
-- **Total MCP tools:** 66 (was 66) → **+1 new tool = 67 total**
+- **Total MCP tools:** 66 (was 66) → **+1 new tool = 67 total** (now 69 in v1.9.10)
 - **Python service:** Added TimeInTimezoneCalculator engine module
 - **Python service:** Added 1 new endpoint at `/v1/time/timezone/calculate`
 - **MCP server:** Updated startup message with v1.9.9 tool

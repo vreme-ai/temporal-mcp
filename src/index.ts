@@ -1944,6 +1944,74 @@ server.registerTool("calculate_time_in_timezone", {
   }
 });
 
+server.registerTool("get_calendar_boundaries", {
+  description: "CALENDAR BOUNDARIES: Get start and end dates for calendar boundaries (week, month, quarter, year). Returns structured data with start_date, end_date, day_count, and metadata. Use for queries like 'What is the first day of this month?' or 'When does this quarter end?'. Supports week boundaries with Monday or Sunday start. Returns structured JSON data only (no formatted strings).",
+  inputSchema: z.object({
+    reference_date: z.string().describe("ISO 8601 date string (YYYY-MM-DD)"),
+    boundary_type: z.enum(["week", "month", "quarter", "year"]).describe("Type of boundary: 'week', 'month', 'quarter', or 'year'"),
+    week_start: z.enum(["monday", "sunday"]).optional().describe("Week start day for week boundaries (default: 'monday')")
+  })
+}, async ({ reference_date, boundary_type, week_start }) => {
+  updateActivityTracking();
+  try {
+    if (!reference_date) {
+      throw new Error("reference_date is required");
+    }
+
+    if (!boundary_type) {
+      throw new Error("boundary_type is required");
+    }
+
+    const response = await fetch(`${VREME_API_URL}/v1/time/boundaries/calendar`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reference_date, boundary_type, week_start: week_start || "monday" })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`API request failed: ${response.status} ${errorText}`);
+    }
+
+    const result = await response.json();
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
+  }
+});
+
+server.registerTool("get_iso_week_info", {
+  description: "ISO WEEK CALCULATOR: Get ISO week number, ISO year, and week boundaries for a date. Returns structured data with ISO week number (1-53), ISO year (may differ from calendar year), week start/end dates, and metadata. Use for queries like 'What ISO week is this date in?' or 'What is the ISO week number for December 15?'. ISO weeks start on Monday and week 1 contains January 4th. Returns structured JSON data only (no formatted strings).",
+  inputSchema: z.object({
+    reference_date: z.string().describe("ISO 8601 date string (YYYY-MM-DD)")
+  })
+}, async ({ reference_date }) => {
+  updateActivityTracking();
+  try {
+    if (!reference_date) {
+      throw new Error("reference_date is required");
+    }
+
+    const response = await fetch(`${VREME_API_URL}/v1/time/iso-week/info`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reference_date })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`API request failed: ${response.status} ${errorText}`);
+    }
+
+    const result = await response.json();
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
+  }
+});
+
 server.registerTool("resolve_temporal_phrase", {
   description: "🗣️ TEMPORAL PHRASE RESOLVER: Convert natural language phrases like 'tomorrow evening', 'end of week', 'early next week' to concrete time windows. Returns canonical window with start/end times, confidence score (0-1), and alternative interpretations. Context-aware for planning vs casual conversation.",
   inputSchema: z.object({
@@ -2830,10 +2898,10 @@ server.registerTool("get_observances_calendar", {
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("=== VREME MCP Server v1.9.0 ===");
+  console.error("=== VREME MCP Server v1.9.10 ===");
   console.error("Vreme Time Service MCP Server running");
   console.error(`API URL: ${VREME_API_URL}`);
-  console.error("Available tools (67 total):");
+  console.error("Available tools (69 total):");
   console.error("  🧠 get_temporal_context - AUTO-CALL at conversation start for temporal awareness");
   console.error("  ⏰ get_current_time - Use for 'What time is it?' queries");
   console.error("  📅 Temporal Tools:");
@@ -2880,8 +2948,12 @@ async function main() {
   console.error("     - calculate_business_days_between - Calculate business days between two dates");
   console.error("     - find_nth_occurrence - Find nth occurrence of weekday in month/year");
   console.error("");
-  console.error("  🌍 v1.9.9 Time in Timezone Calculator (1 NEW tool):");
+  console.error("  🌍 v1.9.9 Time in Timezone Calculator (1 tool):");
   console.error("     - calculate_time_in_timezone - Convert datetime to specific timezone");
+  console.error("");
+  console.error("  📅 v1.9.10 Calendar Boundaries & ISO Week Intelligence (2 NEW tools):");
+  console.error("     - get_calendar_boundaries - Get start/end dates for week, month, quarter, year");
+  console.error("     - get_iso_week_info - Get ISO week number, ISO year, and week boundaries");
   console.error("");
   console.error("  🆕 v1.7.0 Temporal Context System (11 tools):");
   console.error("     - export_temporal_context_snapshot, generate_temporal_prompt_prefix");

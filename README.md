@@ -6,24 +6,26 @@
 
 # Vreme Temporal MCP Server
 
-**v1.9.9**
+**v1.9.10**
 
-MCP server providing comprehensive temporal intelligence including timezone conversions, 32 cultural calendars, astronomical events, prayer times, 247+ country holiday data, 5 financial markets, business time calculations, astrology, observance tracking, timezone offset intelligence, date range operations, historical date facts, temporal pattern detection, weekday finder, business days calculator, nth occurrence finder, and time in timezone calculator.
+MCP server providing comprehensive temporal intelligence including timezone conversions, 32 cultural calendars, astronomical events, prayer times, 247+ country holiday data, 5 financial markets, business time calculations, astrology, observance tracking, timezone offset intelligence, date range operations, historical date facts, temporal pattern detection, weekday finder, business days calculator, nth occurrence finder, time in timezone calculator, calendar boundaries, and ISO week intelligence.
 
 [![npm version](https://img.shields.io/npm/v/@vreme/temporal-mcp.svg)](https://www.npmjs.com/package/@vreme/temporal-mcp)
 [![Docker Image](https://img.shields.io/docker/v/vreme/temporal-mcp?label=docker)](https://hub.docker.com/r/vreme/temporal-mcp)
 
-## What's New in v1.9.9
+## What's New in v1.9.10
 
-**Time in Timezone Calculator** - 1 new tool for timezone conversions:
+**Calendar Boundaries & ISO Week Intelligence** - 2 new tools for calendar operations:
 
-- **`calculate_time_in_timezone`** - Convert a datetime to a specific timezone and return structured data about what that time is in that timezone. Returns local datetime, date, time, UTC offset, DST status, timezone abbreviation, and day-of-week metadata. Perfect for queries like "What is 3pm EST in Tokyo time?" or "Convert this datetime to New York timezone". Handles timezone-aware and naive datetimes.
+- **`get_calendar_boundaries`** - Get start and end dates for calendar boundaries (week, month, quarter, year). Returns structured data with start_date, end_date, day_count, and metadata. Perfect for queries like "What is the first day of this month?" or "When does this quarter end?". Supports week boundaries with Monday or Sunday start.
+
+- **`get_iso_week_info`** - Get ISO week number, ISO year, and week boundaries for a date. Returns structured data with ISO week number (1-53), ISO year (may differ from calendar year), week start/end dates, and metadata. Perfect for queries like "What ISO week is this date in?" or "What is the ISO week number for December 15?". ISO weeks start on Monday and week 1 contains January 4th.
 
 All tools return structured JSON data only (no formatted strings), following Vreme's data-first philosophy. Fast execution, pure computational facts.
 
 ## Overview
 
-Vreme Temporal MCP Server provides 67 specialized tools for temporal intelligence, organized into 15 categories:
+Vreme Temporal MCP Server provides 69 specialized tools for temporal intelligence, organized into 16 categories:
 
 - **Core Temporal Tools** (7) - Time queries, prayer times, activity appropriateness
 - **Holiday & Business Time** (10) - 247+ countries, business day calculations
@@ -41,6 +43,8 @@ Vreme Temporal MCP Server provides 67 specialized tools for temporal intelligenc
 - **Business Days Calculator** (1) - Calculate business days between two dates
 - **Nth Occurrence Finder** (1) - Find nth occurrence of weekday in month/year
 - **Time in Timezone Calculator** (1) - Convert datetime to specific timezone
+- **Calendar Boundaries** (1) - Get start/end dates for week, month, quarter, year
+- **ISO Week Intelligence** (1) - Get ISO week number, ISO year, and week boundaries
 
 ## Tools Reference
 
@@ -165,6 +169,14 @@ Vreme Temporal MCP Server provides 67 specialized tools for temporal intelligenc
 ### Time in Timezone Calculator
 
 **calculate_time_in_timezone** - Convert a datetime to a specific timezone and return structured data about what that time is in that timezone. Returns local datetime, date, time, UTC offset (seconds, hours, formatted), DST status, timezone abbreviation, and day-of-week metadata. Use for queries like "What is 3pm EST in Tokyo time?" or "Convert this datetime to New York timezone". Handles timezone-aware and naive datetimes.
+
+### Calendar Boundaries
+
+**get_calendar_boundaries** - Get start and end dates for calendar boundaries (week, month, quarter, year). Returns structured data with start_date, end_date, day_count, and metadata. Use for queries like "What is the first day of this month?" or "When does this quarter end?". Supports week boundaries with Monday or Sunday start. Returns structured JSON data only (no formatted strings).
+
+### ISO Week Intelligence
+
+**get_iso_week_info** - Get ISO week number, ISO year, and week boundaries for a date. Returns structured data with ISO week number (1-53), ISO year (may differ from calendar year), week start/end dates, and metadata. Use for queries like "What ISO week is this date in?" or "What is the ISO week number for December 15?". ISO weeks start on Monday and week 1 contains January 4th. Returns structured JSON data only (no formatted strings).
 
 ### Calendar and Recurrence
 
